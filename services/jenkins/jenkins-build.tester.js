@@ -5,7 +5,7 @@ export const t = await createServiceTester()
 
 const isJenkinsBuildStatus = Joi.alternatives(
   isBuildStatus,
-  Joi.string().allow('unstable')
+  Joi.string().allow('unstable'),
 )
 
 t.create('build job not found')
@@ -14,9 +14,7 @@ t.create('build job not found')
 
 t.create('build found (view)')
   .get(
-    `/build.json?jobUrl=${encodeURIComponent(
-      'https://wso2.org/jenkins/view/All Builds/job/archetypes'
-    )}`
+    '/build.json?jobUrl=https://jenkins.sqlalchemy.org/view/alembic/job/alembic_coverage/',
   )
   .expectBadge({ label: 'build', message: isJenkinsBuildStatus })
 

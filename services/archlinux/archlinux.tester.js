@@ -3,7 +3,7 @@ import { createServiceTester } from '../tester.js'
 export const t = await createServiceTester()
 
 t.create('Arch Linux package (valid)')
-  .get('/core/x86_64/pacman.json')
+  .get('/core/x86_64/iptables.json')
   .expectBadge({
     label: 'arch linux',
     message: isVPlusDottedVersionNClausesWithOptionalSuffixAndEpoch,
@@ -18,7 +18,7 @@ t.create('Arch Linux package (valid)')
         pkgname: 'pacman',
         pkgver: '5.1.3',
         pkgrel: '1',
-      })
+      }),
   )
   .expectBadge({ label: 'arch linux', message: 'v5.1.3' })
 

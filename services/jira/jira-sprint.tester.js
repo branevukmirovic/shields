@@ -4,20 +4,20 @@ import { sprintId, sprintQueryString } from './jira-test-helpers.js'
 export const t = await createServiceTester()
 
 t.create('unknown sprint')
-  .get('/abc.json?baseUrl=https://jira.spring.io')
+  .get('/abc.json?baseUrl=https://issues.apache.org/jira')
   .expectBadge({ label: 'jira', message: 'sprint not found' })
 
 t.create('known sprint')
-  .get('/94.json?baseUrl=https://jira.spring.io')
+  .get('/3.json?baseUrl=https://issues.apache.org/jira')
   .expectBadge({
     label: 'completion',
     message: isIntegerPercentage,
   })
 
 t.create('100% completion')
-  .get(`/${sprintId}.json?baseUrl=http://issues.apache.org/jira`)
+  .get(`/${sprintId}.json?baseUrl=https://issues.apache.org/jira`)
   .intercept(nock =>
-    nock('http://issues.apache.org/jira/rest/api/2')
+    nock('https://issues.apache.org/jira/rest/api/2')
       .get('/search')
       .query(sprintQueryString)
       .reply(200, {
@@ -38,7 +38,7 @@ t.create('100% completion')
             },
           },
         ],
-      })
+      }),
   )
   .expectBadge({
     label: 'completion',
@@ -47,9 +47,9 @@ t.create('100% completion')
   })
 
 t.create('0% completion')
-  .get(`/${sprintId}.json?baseUrl=http://issues.apache.org/jira`)
+  .get(`/${sprintId}.json?baseUrl=https://issues.apache.org/jira`)
   .intercept(nock =>
-    nock('http://issues.apache.org/jira/rest/api/2')
+    nock('https://issues.apache.org/jira/rest/api/2')
       .get('/search')
       .query(sprintQueryString)
       .reply(200, {
@@ -63,7 +63,7 @@ t.create('0% completion')
             },
           },
         ],
-      })
+      }),
   )
   .expectBadge({
     label: 'completion',
@@ -72,15 +72,15 @@ t.create('0% completion')
   })
 
 t.create('no issues in sprint')
-  .get(`/${sprintId}.json?baseUrl=http://issues.apache.org/jira`)
+  .get(`/${sprintId}.json?baseUrl=https://issues.apache.org/jira`)
   .intercept(nock =>
-    nock('http://issues.apache.org/jira/rest/api/2')
+    nock('https://issues.apache.org/jira/rest/api/2')
       .get('/search')
       .query(sprintQueryString)
       .reply(200, {
         total: 0,
         issues: [],
-      })
+      }),
   )
   .expectBadge({
     label: 'completion',
@@ -110,7 +110,7 @@ t.create('issue with null resolution value')
             },
           },
         ],
-      })
+      }),
   )
   .expectBadge({
     label: 'completion',

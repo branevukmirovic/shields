@@ -43,14 +43,23 @@ describe('GithubTag', function () {
     }).expect('1.2.0-beta')
   })
 
-  test(GithubTag.render, () => {
-    given({ usingSemver: false, version: '1.2.3' }).expect({
-      message: 'v1.2.3',
-      color: 'blue',
-    })
-    given({ usingSemver: true, version: '2.0.0' }).expect({
-      message: 'v2.0.0',
-      color: 'blue',
-    })
+  test(GithubTag.getLimit, () => {
+    given({ sort: 'date', filter: undefined }).expect(1)
+    given({ sort: 'date', filter: '' }).expect(1)
+    given({ sort: 'date', filter: '!*-dev' }).expect(100)
+    given({ sort: 'semver', filter: undefined }).expect(100)
+    given({ sort: 'semver', filter: '' }).expect(100)
+    given({ sort: 'semver', filter: '!*-dev' }).expect(100)
+  })
+
+  test(GithubTag.applyFilter, () => {
+    const tags = ['v1.1.0', 'v1.2.0', 'server-2022-01-01']
+    given({ tags, filter: undefined }).expect(tags)
+    given({ tags, filter: '' }).expect(tags)
+    given({ tags, filter: '*' }).expect(tags)
+    given({ tags, filter: '!*' }).expect([])
+    given({ tags, filter: 'foo' }).expect([])
+    given({ tags, filter: 'server-*' }).expect(['server-2022-01-01'])
+    given({ tags, filter: '!server-*' }).expect(['v1.1.0', 'v1.2.0'])
   })
 })

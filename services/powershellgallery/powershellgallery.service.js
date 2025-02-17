@@ -1,5 +1,5 @@
 import { fetch, createServiceFamily } from '../nuget/nuget-v2-service-family.js'
-import { BaseXmlService } from '../index.js'
+import { BaseXmlService, pathParams } from '../index.js'
 
 const WINDOWS_TAG_NAME = 'windows'
 const MACOS_TAG_NAME = 'macos'
@@ -16,12 +16,8 @@ const {
   defaultLabel: 'powershell gallery',
   serviceBaseUrl: 'powershellgallery',
   apiBaseUrl,
-  odataFormat: 'xml',
   title: 'PowerShell Gallery',
   examplePackageName: 'Azure.Storage',
-  exampleVersion: '4.4.0',
-  examplePrereleaseVersion: '4.4.1-preview',
-  exampleDownloadCount: 1.2e7,
 })
 
 class PowershellGalleryPlatformSupport extends BaseXmlService {
@@ -32,15 +28,17 @@ class PowershellGalleryPlatformSupport extends BaseXmlService {
     pattern: ':packageName',
   }
 
-  static examples = [
-    {
-      title: 'PowerShell Gallery',
-      namedParams: { packageName: 'DNS.1.1.1.1' },
-      staticPreview: this.render({
-        platforms: ['windows', 'macos', 'linux'],
-      }),
+  static openApi = {
+    '/powershellgallery/p/{packageName}': {
+      get: {
+        summary: 'PowerShell Gallery Platform Support',
+        parameters: pathParams({
+          name: 'packageName',
+          example: 'PackageManagement',
+        }),
+      },
     },
-  ]
+  }
 
   static defaultBadgeData = {
     label: 'platform',
@@ -55,7 +53,6 @@ class PowershellGalleryPlatformSupport extends BaseXmlService {
   async handle({ packageName }) {
     const { Tags: tagStr } = await fetch(this, {
       baseUrl: apiBaseUrl,
-      odataFormat: 'xml',
       packageName,
     })
 

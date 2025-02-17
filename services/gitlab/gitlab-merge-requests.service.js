@@ -1,6 +1,8 @@
 import Joi from 'joi'
+import { pathParam, queryParam } from '../index.js'
 import { optionalUrl, nonNegativeInteger } from '../validators.js'
 import { metric } from '../text-formatters.js'
+import { description, httpErrorsFor } from './gitlab-helper.js'
 import GitLabBase from './gitlab-base.js'
 
 // The total number of MR is in the `x-total` field in the headers.
@@ -15,262 +17,51 @@ const queryParamSchema = Joi.object({
   gitlab_url: optionalUrl,
 }).required()
 
-const documentation = `
-<p>
-  You may use your GitLab Project Id (e.g. 278964) or your Project Path (e.g. gitlab-org/gitlab ).
-  Note that only internet-accessible GitLab instances are supported, for example https://jihulab.com, https://gitlab.gnome.org, or https://gitlab.com/.
-  <a href="https://docs.gitlab.com/ee/user/gitlab_com/index.html#pagination-response-headers">GitLab's API </a> only reports up to 10k Merge Requests, so badges for projects that have more than 10k will not have an exact count.
-</p>
+const more = `
+<a href="https://docs.gitlab.com/ee/user/gitlab_com/index.html#pagination-response-headers">GitLab's API </a> only reports up to 10k Merge Requests, so badges for projects that have more than 10k will not have an exact count.
 `
 
-const labelDocumentation = `
-<p>
-  If you want to use multiple labels then please use commas (<code>,</code>) to separate them, e.g. <code>foo,bar</code>.
-</p>
-`
+const mergeRequestsDescription = description + more
 
 export default class GitlabMergeRequests extends GitLabBase {
   static category = 'issue-tracking'
 
   static route = {
     base: 'gitlab/merge-requests',
-    pattern: ':variant(all|open|closed|locked|merged):raw(-raw)?/:project+',
+    pattern:
+      ':variant(all|all-raw|open|open-raw|closed|closed-raw|locked|locked-raw|merged|merged-raw)/:project+',
     queryParamSchema,
   }
 
-  static examples = [
-    {
-      title: 'GitLab merge requests',
-      pattern: 'open/:project+',
-      namedParams: {
-        project: 'gitlab-org/gitlab',
+  static openApi = {
+    '/gitlab/merge-requests/{variant}/{project}': {
+      get: {
+        summary: 'GitLab Merge Requests',
+        description: mergeRequestsDescription,
+        parameters: [
+          pathParam({
+            name: 'variant',
+            example: 'all',
+            schema: { type: 'string', enum: this.getEnum('variant') },
+          }),
+          pathParam({
+            name: 'project',
+            example: 'gitlab-org/gitlab',
+          }),
+          queryParam({
+            name: 'gitlab_url',
+            example: 'https://gitlab.com',
+          }),
+          queryParam({
+            name: 'labels',
+            example: 'test,type::feature',
+            description:
+              'If you want to use multiple labels, you can use a comma (<code>,</code>) to separate them, e.g. <code>foo,bar</code>',
+          }),
+        ],
       },
-      queryParams: { gitlab_url: 'https://gitlab.com' },
-      staticPreview: {
-        label: 'merge requests',
-        message: '1.4k open',
-        color: 'blue',
-      },
-      documentation,
     },
-    {
-      title: 'GitLab merge requests',
-      pattern: 'open-raw/:project+',
-      namedParams: {
-        project: 'gitlab-org/gitlab',
-      },
-      queryParams: { gitlab_url: 'https://gitlab.com' },
-      staticPreview: {
-        label: 'open merge requests',
-        message: '1.4k',
-        color: 'blue',
-      },
-      documentation,
-    },
-    {
-      title: 'GitLab merge requests by-label',
-      pattern: 'open/:project+',
-      namedParams: {
-        project: 'gitlab-org/gitlab',
-      },
-      queryParams: {
-        labels: 'test,type::feature',
-        gitlab_url: 'https://gitlab.com',
-      },
-      staticPreview: {
-        label: 'test,failure::new merge requests',
-        message: '3 open',
-        color: 'blue',
-      },
-      documentation: documentation + labelDocumentation,
-    },
-    {
-      title: 'GitLab merge requests by-label',
-      pattern: 'open-raw/:project+',
-      namedParams: {
-        project: 'gitlab-org/gitlab',
-      },
-      queryParams: {
-        labels: 'gitlab-org/gitlab',
-        gitlab_url: 'https://gitlab.com',
-      },
-      staticPreview: {
-        label: 'open test,failure::new merge requests',
-        message: '3',
-        color: 'blue',
-      },
-      documentation: documentation + labelDocumentation,
-    },
-    {
-      title: 'GitLab closed merge requests',
-      pattern: 'closed/:project+',
-      namedParams: {
-        project: 'gitlab-org/gitlab',
-      },
-      queryParams: { gitlab_url: 'https://gitlab.com' },
-      staticPreview: {
-        label: 'merge requests',
-        message: 'more than 10k closed',
-        color: 'blue',
-      },
-      documentation,
-    },
-    {
-      title: 'GitLab closed merge requests',
-      pattern: 'closed-raw/:project+',
-      namedParams: {
-        project: 'gitlab-org/gitlab',
-      },
-      queryParams: { gitlab_url: 'https://gitlab.com' },
-      staticPreview: {
-        label: 'closed merge requests',
-        message: 'more than 10k',
-        color: 'blue',
-      },
-      documentation,
-    },
-    {
-      title: 'GitLab closed merge requests by-label',
-      pattern: 'closed/:project+',
-      namedParams: {
-        project: 'gitlab-org/gitlab',
-      },
-      queryParams: {
-        labels: 'test,type::feature',
-        gitlab_url: 'https://gitlab.com',
-      },
-      staticPreview: {
-        label: 'test,failure::new merge requests',
-        message: '32 closed',
-        color: 'blue',
-      },
-      documentation: documentation + labelDocumentation,
-    },
-    {
-      title: 'GitLab closed merge requests by-label',
-      pattern: 'closed-raw/:project+',
-      namedParams: {
-        project: 'gitlab-org/gitlab',
-      },
-      queryParams: {
-        labels: 'test,type::feature',
-        gitlab_url: 'https://gitlab.com',
-      },
-      staticPreview: {
-        label: 'closed test,failure::new merge requests',
-        message: '32',
-        color: 'blue',
-      },
-      documentation: documentation + labelDocumentation,
-    },
-    {
-      title: 'GitLab all merge requests',
-      pattern: 'all/:project+',
-      namedParams: {
-        project: 'gitlab-org/gitlab',
-      },
-      queryParams: { gitlab_url: 'https://gitlab.com' },
-      staticPreview: {
-        label: 'merge requests',
-        message: 'more than 10k all',
-        color: 'blue',
-      },
-      documentation,
-    },
-    {
-      title: 'GitLab all merge requests',
-      pattern: 'all-raw/:project+',
-      namedParams: {
-        project: 'gitlab-org/gitlab',
-      },
-      queryParams: { gitlab_url: 'https://gitlab.com' },
-      staticPreview: {
-        label: 'all merge requests',
-        message: 'more than 10k',
-        color: 'blue',
-      },
-      documentation,
-    },
-    {
-      title: 'GitLab all merge requests by-label',
-      pattern: 'all-raw/:project+',
-      namedParams: {
-        project: 'gitlab-org/gitlab',
-      },
-      queryParams: {
-        labels: 'test,failure::new',
-        gitlab_url: 'https://gitlab.com',
-      },
-      staticPreview: {
-        label: 'all test,failure::new merge requests',
-        message: '12',
-        color: 'blue',
-      },
-      documentation: documentation + labelDocumentation,
-    },
-    {
-      title: 'GitLab locked merge requests',
-      pattern: 'locked/:project+',
-      namedParams: {
-        project: 'gitlab-org/gitlab',
-      },
-      queryParams: { gitlab_url: 'https://gitlab.com' },
-      staticPreview: {
-        label: 'merge requests',
-        message: '0 locked',
-        color: 'blue',
-      },
-      documentation,
-    },
-    {
-      title: 'GitLab locked merge requests by-label',
-      pattern: 'closed/:project+',
-      namedParams: {
-        project: 'gitlab-org/gitlab',
-      },
-      queryParams: {
-        labels: 'test,type::feature',
-        gitlab_url: 'https://gitlab.com',
-      },
-      staticPreview: {
-        label: 'test,failure::new merge requests',
-        message: '0 locked',
-        color: 'blue',
-      },
-      documentation: documentation + labelDocumentation,
-    },
-    {
-      title: 'GitLab merged merge requests',
-      pattern: 'merged/:project+',
-      namedParams: {
-        project: 'gitlab-org/gitlab',
-      },
-      queryParams: { gitlab_url: 'https://gitlab.com' },
-      staticPreview: {
-        label: 'merge requests',
-        message: 'more than 10k merged',
-        color: 'blue',
-      },
-      documentation,
-    },
-    {
-      title: 'GitLab merged merge requests by-label',
-      pattern: 'merged/:project+',
-      namedParams: {
-        project: 'gitlab-org/gitlab',
-      },
-      queryParams: {
-        labels: 'test,type::feature',
-        gitlab_url: 'https://gitlab.com',
-      },
-      staticPreview: {
-        label: 'test,failure::new merge requests',
-        message: '68 merged',
-        color: 'blue',
-      },
-      documentation: documentation + labelDocumentation,
-    },
-  ]
+  }
 
   static defaultBadgeData = { label: 'merge requests' }
 
@@ -281,13 +72,13 @@ export default class GitlabMergeRequests extends GitLabBase {
 
     let labelPrefix = ''
     let messageSuffix = ''
-    if (raw !== undefined) {
+    if (raw) {
       labelPrefix = `${state} `
     } else {
       messageSuffix = state
     }
     const message = `${mergeRequestCount > 10000 ? 'more than ' : ''}${metric(
-      mergeRequestCount
+      mergeRequestCount,
     )}${messageSuffix ? ' ' : ''}${messageSuffix}`
     return {
       label: `${labelPrefix}${labelText}merge requests`,
@@ -301,7 +92,7 @@ export default class GitlabMergeRequests extends GitLabBase {
     const { res } = await this._request(
       this.authHelper.withBearerAuthHeader({
         url: `${baseUrl}/api/v4/projects/${encodeURIComponent(
-          project
+          project,
         )}/merge_requests`,
         options: {
           searchParams: {
@@ -311,10 +102,8 @@ export default class GitlabMergeRequests extends GitLabBase {
             labels,
           },
         },
-        errorMessages: {
-          404: 'project not found',
-        },
-      })
+        httpErrors: httpErrorsFor('project not found'),
+      }),
     )
     return this.constructor._validate(res.headers, schema)
   }
@@ -331,19 +120,19 @@ export default class GitlabMergeRequests extends GitLabBase {
   }
 
   async handle(
-    { variant, raw, project },
-    { gitlab_url: baseUrl = 'https://gitlab.com', labels }
+    { variant, project },
+    { gitlab_url: baseUrl = 'https://gitlab.com', labels },
   ) {
     const data = await this.fetch({
       project,
       baseUrl,
-      variant,
+      variant: variant.split('-')[0],
       labels,
     })
     const mergeRequestCount = this.constructor.transform(data)
     return this.constructor.render({
-      variant,
-      raw,
+      variant: variant.split('-')[0],
+      raw: variant.endsWith('-raw'),
       labels,
       mergeRequestCount,
     })

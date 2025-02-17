@@ -1,7 +1,14 @@
 import Joi from 'joi'
 import { isBuildStatus, renderBuildStatusBadge } from '../build-status.js'
 import { optionalUrl } from '../validators.js'
-import { BaseSvgScrapingService, NotFound, redirector } from '../index.js'
+import {
+  BaseSvgScrapingService,
+  NotFound,
+  redirector,
+  pathParam,
+  queryParam,
+} from '../index.js'
+import { description, httpErrorsFor } from './gitlab-helper.js'
 
 const badgeSchema = Joi.object({
   message: Joi.alternatives()
@@ -14,26 +21,21 @@ const queryParamSchema = Joi.object({
   branch: Joi.string(),
 }).required()
 
-const documentation = `
-<p>
-  Important: You must use the Project Path, not the Project Id. Additionally, if your project is publicly visible, but the badge is like this:
-  <img src="https://img.shields.io/badge/build-not&nbsp;found-red" alt="build not found"/>
-</p>
-<p>
-  Check if your pipelines are publicly visible as well.<br />
-  Navigate to your project settings on GitLab and choose General Pipelines under CI/CD.<br />
-  Then tick the setting Public pipelines.
-</p>
-<p>
-  Now your settings should look like this:
-</p>
+const moreDocs = `
+Important: You must use the Project Path, not the Project Id. Additionally, if your project is publicly visible, but the badge is like this:
+<img src="https://img.shields.io/badge/build-not&nbsp;found-red" alt="build not found"/>
+
+Check if your pipelines are publicly visible as well.<br />
+Navigate to your project settings on GitLab and choose General Pipelines under CI/CD.<br />
+Then tick the setting Public pipelines.
+
+Now your settings should look like this:
+
 <img src="https://user-images.githubusercontent.com/12065866/67156911-e225a180-f324-11e9-93ad-10aafbb3e69e.png" alt="Setting Public pipelines set"/>
-<p>
-  Your badge should be working fine now.
-</p>
-<p>
-  NB - The badge will display 'inaccessible' if the specified repo was not found on the target Gitlab instance.
-</p>
+
+Your badge should be working fine now.
+
+NB - The badge will display 'inaccessible' if the specified repo was not found on the target Gitlab instance.
 `
 
 class GitlabPipelineStatus extends BaseSvgScrapingService {
@@ -45,22 +47,28 @@ class GitlabPipelineStatus extends BaseSvgScrapingService {
     queryParamSchema,
   }
 
-  static examples = [
-    {
-      title: 'Gitlab pipeline status',
-      namedParams: { project: 'gitlab-org/gitlab' },
-      queryParams: { branch: 'master' },
-      staticPreview: this.render({ status: 'passed' }),
-      documentation,
+  static openApi = {
+    '/gitlab/pipeline-status/{project}': {
+      get: {
+        summary: 'Gitlab Pipeline Status',
+        description: description + moreDocs,
+        parameters: [
+          pathParam({
+            name: 'project',
+            example: 'gitlab-org/gitlab',
+          }),
+          queryParam({
+            name: 'gitlab_url',
+            example: 'https://gitlab.com',
+          }),
+          queryParam({
+            name: 'branch',
+            example: 'master',
+          }),
+        ],
+      },
     },
-    {
-      title: 'Gitlab pipeline status (self-managed)',
-      namedParams: { project: 'GNOME/pango' },
-      queryParams: { gitlab_url: 'https://gitlab.gnome.org', branch: 'master' },
-      staticPreview: this.render({ status: 'passed' }),
-      documentation,
-    },
-  ]
+  }
 
   static render({ status }) {
     return renderBuildStatusBadge({ status })
@@ -70,12 +78,9 @@ class GitlabPipelineStatus extends BaseSvgScrapingService {
     return this._requestSvg({
       schema: badgeSchema,
       url: `${baseUrl}/${decodeURIComponent(
-        project
+        project,
       )}/badges/${branch}/pipeline.svg`,
-      errorMessages: {
-        401: 'repo not found',
-        404: 'repo not found',
-      },
+      httpErrors: httpErrorsFor('project not found'),
     })
   }
 
@@ -89,7 +94,7 @@ class GitlabPipelineStatus extends BaseSvgScrapingService {
 
   async handle(
     { project },
-    { gitlab_url: baseUrl = 'https://gitlab.com', branch = 'main' }
+    { gitlab_url: baseUrl = 'https://gitlab.com', branch = 'main' },
   ) {
     const data = await this.fetch({
       project,

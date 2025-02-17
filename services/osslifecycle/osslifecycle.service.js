@@ -1,46 +1,46 @@
-import { BaseService, InvalidResponse } from '../index.js'
+import Joi from 'joi'
+import { url } from '../validators.js'
+import { BaseService, InvalidResponse, queryParam } from '../index.js'
 
-const documentation = `
-<p>
-  OSS Lifecycle is an initiative started by Netflix to classify open-source projects into lifecycles
-  and clearly identify which projects are active and which ones are retired. To enable this badge,
-  simply create an OSSMETADATA tagging file at the root of your GitHub repository containing a
-  single line similar to the following: <code>osslifecycle=active</code>. Other suggested values are
-  <code>osslifecycle=maintenance</code> and <code>osslifecycle=archived</code>. A working example
-  can be viewed on the <a href="https://github.com/Netflix/osstracker">OSS Tracker repository</a>.
-</p>
+const description = `
+OSS Lifecycle is an initiative started by Netflix to classify open-source projects into lifecycles
+and clearly identify which projects are active and which ones are retired. To enable this badge,
+simply create an OSSMETADATA tagging file at the root of your repository containing a
+single line similar to the following: \`osslifecycle=active\`. Other suggested values are
+\`osslifecycle=maintenance\` and \`osslifecycle=archived\`. A working example
+can be viewed on the [OSS Tracker repository](https://github.com/Netflix/osstracker).
 `
+
+const queryParamSchema = Joi.object({
+  file_url: url,
+}).required()
 
 export default class OssTracker extends BaseService {
   static category = 'other'
 
   static route = {
-    base: 'osslifecycle',
-    pattern: ':user/:repo/:branch*',
+    base: '',
+    pattern: 'osslifecycle',
+    queryParamSchema,
   }
 
-  static examples = [
-    {
-      title: 'OSS Lifecycle',
-      pattern: ':user/:repo',
-      namedParams: { user: 'Teevity', repo: 'ice' },
-      staticPreview: this.render({ status: 'active' }),
-      keywords: ['Netflix'],
-      documentation,
-    },
-    {
-      title: 'OSS Lifecycle (branch)',
-      pattern: ':user/:repo/:branch',
-      namedParams: {
-        user: 'Netflix',
-        repo: 'osstracker',
-        branch: 'documentation',
+  static openApi = {
+    '/osslifecycle': {
+      get: {
+        summary: 'OSS Lifecycle',
+        description,
+        parameters: [
+          queryParam({
+            name: 'file_url',
+            example:
+              'https://raw.githubusercontent.com/Netflix/aws-autoscaling/master/OSSMETADATA',
+            required: true,
+            description: 'URL for the `OSSMETADATA` file',
+          }),
+        ],
       },
-      staticPreview: this.render({ status: 'active' }),
-      keywords: ['Netflix'],
-      documentation,
     },
-  ]
+  }
 
   static defaultBadgeData = { label: 'oss lifecycle' }
 
@@ -73,17 +73,15 @@ export default class OssTracker extends BaseService {
     }
   }
 
-  async fetch({ user, repo, branch }) {
+  async fetch({ fileUrl }) {
     return this._request({
-      url: `https://raw.githubusercontent.com/${user}/${repo}/${branch}/OSSMETADATA`,
+      url: fileUrl,
     })
   }
 
-  async handle({ user, repo, branch }) {
+  async handle(pathParams, { file_url: fileUrl = '' }) {
     const { buffer } = await this.fetch({
-      user,
-      repo,
-      branch: branch || 'HEAD',
+      fileUrl,
     })
     try {
       const status = buffer.match(/osslifecycle=([a-z]+)/im)[1]

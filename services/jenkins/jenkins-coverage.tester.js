@@ -10,35 +10,94 @@ export const t = await createServiceTester()
 t.create('jacoco: job found')
   .get(
     `/jacoco.json?jobUrl=${encodeURIComponent(
-      'https://wso2.org/jenkins/view/All%20Builds/job/archetypes'
-    )}`
+      'https://ci-maven.apache.org/job/Maven/job/maven-box/job/maven-surefire/job/master',
+    )}`,
   )
   .expectBadge({ label: 'coverage', message: isIntegerPercentage })
 
 t.create('jacoco: job not found')
-  .get('/jacoco.json?jobUrl=https://wso2.org/jenkins/job/does-not-exist')
+  .get('/jacoco.json?jobUrl=https://ci-maven.apache.org/job/does-not-exist')
   .expectBadge({ label: 'coverage', message: 'job or coverage not found' })
 
-t.create('cobertura: job not found')
-  .get(
-    '/cobertura.json?jobUrl=https://jenkins.sqlalchemy.org/job/does-not-exist'
-  )
-  .expectBadge({ label: 'coverage', message: 'job or coverage not found' })
+const coverageCoberturaResponse = {
+  _class: 'io.jenkins.plugins.coverage.targets.CoverageResult',
+  results: {
+    elements: [
+      { name: 'Classes', ratio: 52.0 },
+      { name: 'Lines', ratio: 40.66363 },
+    ],
+  },
+}
 
 t.create('cobertura: job found')
   .get(
-    '/cobertura.json?jobUrl=https://jenkins.sqlalchemy.org/job/alembic_coverage'
+    '/cobertura.json?jobUrl=https://jenkins.sqlalchemy.org/job/dogpile_coverage',
   )
-  .expectBadge({ label: 'coverage', message: isIntegerPercentage })
+  .intercept(nock =>
+    nock(
+      'https://jenkins.sqlalchemy.org/job/dogpile_coverage/lastCompletedBuild',
+    )
+      .get('/cobertura/api/json')
+      .query(true)
+      .reply(200, coverageCoberturaResponse),
+  )
+  .expectBadge({ label: 'coverage', message: '41%' })
 
-t.create('code coverage API: job not found')
+t.create('cobertura: job not found')
   .get(
-    '/api.json?jobUrl=https://jenkins.library.illinois.edu/job/does-not-exist'
+    '/cobertura.json?jobUrl=https://jenkins.sqlalchemy.org/job/does-not-exist',
   )
   .expectBadge({ label: 'coverage', message: 'job or coverage not found' })
 
-t.create('code coverage API: job found')
+const coverageApiV1Response = {
+  _class: 'io.jenkins.plugins.coverage.targets.CoverageResult',
+  results: {
+    elements: [
+      { name: 'Report', ratio: 100.0 },
+      { name: 'Group', ratio: 100.0 },
+      { name: 'Package', ratio: 66.666664 },
+      { name: 'File', ratio: 52.0 },
+      { name: 'Class', ratio: 52.0 },
+      { name: 'Line', ratio: 40.66363 },
+      { name: 'Conditional', ratio: 29.91968 },
+    ],
+  },
+}
+
+t.create('code coverage API v1: job found')
   .get(
-    '/api.json?jobUrl=http://loneraver.duckdns.org:8082/job/github/job/VisVid/job/master/'
+    '/apiv1.json?jobUrl=http://loneraver.duckdns.org:8082/job/github/job/VisVid/job/master',
+  )
+  .intercept(nock =>
+    nock(
+      'http://loneraver.duckdns.org:8082/job/github/job/VisVid/job/master/lastCompletedBuild',
+    )
+      .get('/coverage/result/api/json')
+      .query(true)
+      .reply(200, coverageApiV1Response),
   )
   .expectBadge({ label: 'coverage', message: isIntegerPercentage })
+
+t.create('code coverage API v1: job not found')
+  .get(
+    '/apiv1.json?jobUrl=http://loneraver.duckdns.org:8082/job/does-not-exist',
+  )
+  .intercept(nock =>
+    nock(
+      'http://loneraver.duckdns.org:8082/job/does-not-exist/lastCompletedBuild',
+    )
+      .get('/coverage/result/api/json')
+      .query(true)
+      .reply(404),
+  )
+  .expectBadge({ label: 'coverage', message: 'job or coverage not found' })
+
+t.create('code coverage API v4+: job found')
+  .get(
+    '/apiv4.json?jobUrl=https://jenkins.mm12.xyz/jenkins/job/nmfu/job/master',
+  )
+  .expectBadge({ label: 'coverage', message: isIntegerPercentage })
+
+t.create('code coverage API v4+: job not found')
+  .get('/apiv4.json?jobUrl=https://jenkins.mm12.xyz/jenkins/job/does-not-exist')
+  .expectBadge({ label: 'coverage', message: 'job or coverage not found' })

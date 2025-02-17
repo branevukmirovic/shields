@@ -1,5 +1,5 @@
 import semver from 'semver'
-import PypiBase from './pypi-base.js'
+import PypiBase, { pypiGeneralParams } from './pypi-base.js'
 import { parseClassifiers } from './pypi-helpers.js'
 
 export default class PypiPythonVersions extends PypiBase {
@@ -7,14 +7,14 @@ export default class PypiPythonVersions extends PypiBase {
 
   static route = this.buildRoute('pypi/pyversions')
 
-  static examples = [
-    {
-      title: 'PyPI - Python Version',
-      pattern: ':packageName',
-      namedParams: { packageName: 'Django' },
-      staticPreview: this.render({ versions: ['3.5', '3.6', '3.7'] }),
+  static openApi = {
+    '/pypi/pyversions/{packageName}': {
+      get: {
+        summary: 'PyPI - Python Version',
+        parameters: pypiGeneralParams,
+      },
     },
-  ]
+  }
 
   static defaultBadgeData = { label: 'python' }
 
@@ -31,7 +31,7 @@ export default class PypiPythonVersions extends PypiBase {
       return {
         message: Array.from(versionSet)
           .sort((v1, v2) =>
-            semver.compare(semver.coerce(v1), semver.coerce(v2))
+            semver.compare(semver.coerce(v1), semver.coerce(v2)),
           )
           .join(' | '),
         color: 'blue',
@@ -44,20 +44,20 @@ export default class PypiPythonVersions extends PypiBase {
     }
   }
 
-  async handle({ egg }) {
-    const packageData = await this.fetch({ egg })
+  async handle({ egg }, { pypiBaseUrl }) {
+    const packageData = await this.fetch({ egg, pypiBaseUrl })
 
     const versions = parseClassifiers(
       packageData,
-      /^Programming Language :: Python :: ([\d.]+)$/
+      /^Programming Language :: Python :: ([\d.]+)$/,
     )
     // If no versions are found yet, check "X :: Only" as a fallback.
     if (versions.length === 0) {
       versions.push(
         ...parseClassifiers(
           packageData,
-          /^Programming Language :: Python :: (\d+) :: Only$/
-        )
+          /^Programming Language :: Python :: (\d+) :: Only$/,
+        ),
       )
     }
 

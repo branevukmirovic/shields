@@ -1,12 +1,11 @@
-import { test, given, forCases } from 'sazerac'
 import { expect } from 'chai'
+import { forCases, given, test } from 'sazerac'
 import {
-  coveragePercentage,
   colorScale,
+  coveragePercentage,
   letterScore,
-  age,
-  version,
   pep440VersionColor,
+  version,
 } from './color-formatters.js'
 
 describe('Color formatters', function () {
@@ -26,8 +25,8 @@ describe('Color formatters', function () {
 
     forCases(
       [-1, 0, 0.5, 1, 50, 80, 85, 90, 100, 101].map(v =>
-        given(v).expect(coveragePercentage(v))
-      )
+        given(v).expect(coveragePercentage(v)),
+      ),
     ).should("return '%s', for parity with coveragePercentage()")
   })
 
@@ -53,30 +52,6 @@ describe('Color formatters', function () {
     given('Z').expect('red')
   })
 
-  const monthsAgo = months => {
-    const result = new Date()
-    // This looks wack but it works.
-    result.setMonth(result.getMonth() - months)
-    return result
-  }
-  test(age, () => {
-    given(Date.now())
-      .describe('when given the current timestamp')
-      .expect('brightgreen')
-    given(new Date())
-      .describe('when given the current Date')
-      .expect('brightgreen')
-    given(new Date(2001, 1, 1))
-      .describe('when given a Date many years ago')
-      .expect('red')
-    given(monthsAgo(2))
-      .describe('when given a Date two months ago')
-      .expect('yellowgreen')
-    given(monthsAgo(15))
-      .describe('when given a Date 15 months ago')
-      .expect('orange')
-  })
-
   test(version, () => {
     forCases([given('1.0'), given(9), given(1.0)]).expect('blue')
 
@@ -88,23 +63,26 @@ describe('Color formatters', function () {
       given('6.0-SNAPSHOT'),
       given('1.0.1-dev'),
       given('2.1.6-prerelease'),
+      given('2.1.6-RC1'),
+      given('cvs-1'),
+      given('scm-2'),
     ]).expect('orange')
 
     expect(() => version(null)).to.throw(
       Error,
-      "Can't generate a version color for null"
+      "Can't generate a version color for null",
     )
     expect(() => version(undefined)).to.throw(
       Error,
-      "Can't generate a version color for undefined"
+      "Can't generate a version color for undefined",
     )
     expect(() => version(true)).to.throw(
       Error,
-      "Can't generate a version color for true"
+      "Can't generate a version color for true",
     )
     expect(() => version({})).to.throw(
       Error,
-      "Can't generate a version color for [object Object]"
+      "Can't generate a version color for [object Object]",
     )
   })
 

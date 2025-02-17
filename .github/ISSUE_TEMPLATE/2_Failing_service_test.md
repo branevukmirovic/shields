@@ -18,10 +18,6 @@ labels: 'keep-service-tests-green'
 
 <!-- Indicate whether or not the live badge is working. -->
 
-:link: **CircleCI link**
-
-<!-- Provide a link to the failing test in CircleCI. -->
-
 :lady_beetle: **Stack trace**
 
 ```
@@ -32,5 +28,5 @@ labels: 'keep-service-tests-green'
 
 <!--- Optional: only if you have suggestions on a fix/reason for the bug -->
 
-<!-- Love Shields? Please consider donating $10 to sustain our activities:
+<!-- Love Shields? Please consider donating to sustain our activities:
 👉  https://opencollective.com/shields -->

@@ -10,6 +10,7 @@ import {
 import { isValidCategory } from './categories.js'
 import { MetricHelper } from './metric-helper.js'
 import { isValidRoute, prepareRoute, namedParamsForMatch } from './route.js'
+import { openApiSchema } from './service-definitions.js'
 import trace from './trace.js'
 
 const attrSchema = Joi.object({
@@ -17,13 +18,13 @@ const attrSchema = Joi.object({
   category: isValidCategory,
   isDeprecated: Joi.boolean().default(true),
   route: isValidRoute,
-  examples: Joi.array().has(Joi.object()).default([]),
+  openApi: openApiSchema,
   transformPath: Joi.func()
     .maxArity(1)
     .required()
     .error(
       () =>
-        '"transformPath" must be a function that transforms named params to a new path'
+        '"transformPath" must be a function that transforms named params to a new path',
     ),
   transformQueryParams: Joi.func().arity(1),
   dateAdded: Joi.date().required(),
@@ -36,7 +37,7 @@ export default function redirector(attrs) {
     category,
     isDeprecated,
     route,
-    examples,
+    openApi,
     transformPath,
     transformQueryParams,
     overrideTransformedQueryParams,
@@ -52,7 +53,7 @@ export default function redirector(attrs) {
     static category = category
     static isDeprecated = isDeprecated
     static route = route
-    static examples = examples
+    static openApi = openApi
 
     static register({ camp, metricInstance }, { rasterUrl }) {
       const { regex, captureNames } = prepareRoute({
@@ -80,7 +81,7 @@ export default function redirector(attrs) {
           'inbound',
           emojic.arrowHeadingUp,
           'Redirector',
-          route.base
+          route.base,
         )
         trace.logTrace('inbound', emojic.ticket, 'Named params', namedParams)
         trace.logTrace('inbound', emojic.crayon, 'Query params', queryParams)
@@ -110,8 +111,12 @@ export default function redirector(attrs) {
         ask.res.statusCode = 301
         ask.res.setHeader('Location', redirectUrl)
 
-        // To avoid caching mistakes for a long time, and to make this simpler
-        // to reason about, use the same cache semantics as the static badge.
+        /* To avoid caching mistakes forever
+           (in the absence of cache control directives that specify otherwise,
+           301 redirects are cached without any expiry date)
+           and to make this simpler to reason about,
+           use the same cache semantics as the static badge.
+        */
         setCacheHeadersForStaticResource(ask.res)
 
         ask.res.end()

@@ -28,7 +28,7 @@ const schema = Joi.object({
 }).required()
 
 const isCurrencyOverTime = Joi.string().regex(
-  /^([0-9]*[1-9][0-9]*(\.[0-9]+)?|[0]+\.[0-9]*[1-9][0-9]*)[ A-Za-z]{4}\/week/
+  /^([0-9]*[1-9][0-9]*(\.[0-9]+)?|[0]+\.[0-9]*[1-9][0-9]*)[ A-Za-z]{4}\/week/,
 )
 
 function renderCurrencyBadge({ label, amount, currency }) {
@@ -42,10 +42,7 @@ function renderCurrencyBadge({ label, amount, currency }) {
 class LiberapayBase extends BaseJsonService {
   static category = 'funding'
 
-  static defaultBadgeData = {
-    label: 'liberapay',
-    namedLogo: 'liberapay',
-  }
+  static defaultBadgeData = { label: 'liberapay' }
 
   async fetch({ entity }) {
     return this._requestJson({

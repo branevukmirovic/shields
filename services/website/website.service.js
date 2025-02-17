@@ -1,36 +1,26 @@
-import Joi from 'joi'
 import emojic from 'emojic'
-import { optionalUrl } from '../validators.js'
+import Joi from 'joi'
+import trace from '../../core/base-service/trace.js'
+import { BaseService, queryParams } from '../index.js'
+import { url } from '../validators.js'
 import {
   queryParamSchema,
-  exampleQueryParams,
   renderWebsiteStatus,
+  queryParams as websiteQueryParams,
 } from '../website-status.js'
-import { BaseService } from '../index.js'
-import trace from '../../core/base-service/trace.js'
 
-const documentation = `
-<p>
-  The badge is of the form
-  <code>https://img.shields.io/website/PROTOCOL/URLREST.svg</code>.
-</p>
-<p>
-  The whole URL is obtained by concatenating the <code>PROTOCOL</code>
-  (<code>http</code> or <code>https</code>, for example) with the
-  <code>URLREST</code> (separating them with <code>://</code>).
-</p>
-<p>
-  The existence of a specific path on the server can be checked by appending
-  a path after the domain name, e.g.
-  <code>https://img.shields.io/website/http/www.website.com/path/to/page.html.svg</code>.
-</p>
-<p>
-  The messages and colors for the up and down states can also be customized.
-</p>
+const description = `
+The existence of a specific path on the server can be checked by appending
+a path after the domain name, e.g.
+\`https://img.shields.io/website?url=http%3A//www.website.com/path/to/page.html\`.
+
+The messages and colors for the up and down states can also be customized.
+
+A site will be classified as "down" if it fails to respond within 3.5 seconds.
 `
 
 const urlQueryParamSchema = Joi.object({
-  url: optionalUrl.required(),
+  url,
 }).required()
 
 export default class Website extends BaseService {
@@ -42,18 +32,19 @@ export default class Website extends BaseService {
     queryParamSchema: queryParamSchema.concat(urlQueryParamSchema),
   }
 
-  static examples = [
-    {
-      title: 'Website',
-      namedParams: {},
-      queryParams: {
-        ...exampleQueryParams,
-        ...{ url: 'https://shields.io' },
+  static openApi = {
+    '/website': {
+      get: {
+        summary: 'Website',
+        description,
+        parameters: queryParams({
+          name: 'url',
+          required: true,
+          example: 'https://shields.io',
+        }).concat(websiteQueryParams),
       },
-      staticPreview: renderWebsiteStatus({ isUp: true }),
-      documentation,
     },
-  ]
+  }
 
   static defaultBadgeData = {
     label: 'website',
@@ -76,7 +67,7 @@ export default class Website extends BaseService {
       up_color: upColor,
       down_color: downColor,
       url,
-    }
+    },
   ) {
     let isUp
     try {
@@ -86,6 +77,9 @@ export default class Website extends BaseService {
         url,
         options: {
           method: 'HEAD',
+          timeout: {
+            response: 3500,
+          },
         },
       })
       // We consider all HTTP status codes below 310 as success.

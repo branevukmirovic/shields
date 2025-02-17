@@ -1,7 +1,8 @@
 import Joi from 'joi'
 import { renderDownloadsBadge } from '../downloads.js'
 import { nonNegativeInteger } from '../validators.js'
-import { BaseJsonService } from '../index.js'
+import { BaseJsonService, pathParams } from '../index.js'
+import { packageNameDescription } from './npm-base.js'
 
 // https://github.com/npm/registry/blob/master/docs/download-counts.md#output
 const pointResponseSchema = Joi.object({
@@ -27,7 +28,7 @@ const intervalMap = {
     transform: json => json.downloads,
     interval: 'year',
   },
-  dt: {
+  d18m: {
     query: 'range/1000-01-01:3000-01-01',
     // https://github.com/npm/registry/blob/master/docs/download-counts.md#output-1
     schema: Joi.object({
@@ -47,17 +48,30 @@ export default class NpmDownloads extends BaseJsonService {
 
   static route = {
     base: 'npm',
-    pattern: ':interval(dw|dm|dy|dt)/:scope(@.+)?/:packageName',
+    pattern: ':interval(dw|dm|dy|d18m)/:scope(@.+)?/:packageName',
   }
 
-  static examples = [
-    {
-      title: 'npm',
-      namedParams: { interval: 'dw', packageName: 'localeval' },
-      staticPreview: this.render({ interval: 'dw', downloadCount: 30000 }),
-      keywords: ['node'],
+  static openApi = {
+    '/npm/{interval}/{packageName}': {
+      get: {
+        summary: 'NPM Downloads',
+        parameters: pathParams(
+          {
+            name: 'interval',
+            example: 'dw',
+            description:
+              'Downloads in the last Week, Month, Year, or 18 Months',
+            schema: { type: 'string', enum: this.getEnum('interval') },
+          },
+          {
+            name: 'packageName',
+            example: 'localeval',
+            description: packageNameDescription,
+          },
+        ),
+      },
     },
-  ]
+  }
 
   // For testing.
   static _intervalMap = intervalMap
@@ -77,7 +91,7 @@ export default class NpmDownloads extends BaseJsonService {
     const json = await this._requestJson({
       schema,
       url: `https://api.npmjs.org/downloads/${query}/${slug}`,
-      errorMessages: { 404: 'package not found or too new' },
+      httpErrors: { 404: 'package not found or too new' },
     })
 
     const downloadCount = transform(json)

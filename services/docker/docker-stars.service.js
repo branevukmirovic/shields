@@ -1,12 +1,13 @@
 import Joi from 'joi'
 import { metric } from '../text-formatters.js'
 import { nonNegativeInteger } from '../validators.js'
-import { BaseJsonService } from '../index.js'
+import { BaseJsonService, pathParams } from '../index.js'
 import {
   dockerBlue,
   buildDockerUrl,
   getDockerHubUser,
 } from './docker-helpers.js'
+import { fetch } from './docker-hub-common-fetch.js'
 
 const schema = Joi.object({
   star_count: nonNegativeInteger.required(),
@@ -15,16 +16,33 @@ const schema = Joi.object({
 export default class DockerStars extends BaseJsonService {
   static category = 'rating'
   static route = buildDockerUrl('stars')
-  static examples = [
-    {
-      title: 'Docker Stars',
-      namedParams: {
-        user: '_',
-        repo: 'ubuntu',
+
+  static auth = {
+    userKey: 'dockerhub_username',
+    passKey: 'dockerhub_pat',
+    authorizedOrigins: ['https://hub.docker.com'],
+    isRequired: false,
+  }
+
+  static openApi = {
+    '/docker/stars/{user}/{repo}': {
+      get: {
+        summary: 'Docker Stars',
+        parameters: pathParams(
+          {
+            name: 'user',
+            example: '_',
+          },
+          {
+            name: 'repo',
+            example: 'ubuntu',
+          },
+        ),
       },
-      staticPreview: this.render({ stars: 9000 }),
     },
-  ]
+  }
+
+  static _cacheLength = 14400
 
   static defaultBadgeData = { label: 'docker stars' }
 
@@ -36,17 +54,17 @@ export default class DockerStars extends BaseJsonService {
   }
 
   async fetch({ user, repo }) {
-    return this._requestJson({
+    return await fetch(this, {
       schema,
       url: `https://hub.docker.com/v2/repositories/${getDockerHubUser(
-        user
+        user,
       )}/${repo}/`,
-      errorMessages: { 404: 'repo not found' },
+      httpErrors: { 404: 'repo not found' },
     })
   }
 
   async handle({ user, repo }) {
-    const { star_count } = await this.fetch({ user, repo })
-    return this.constructor.render({ stars: star_count })
+    const resp = await this.fetch({ user, repo })
+    return this.constructor.render({ stars: resp.star_count })
   }
 }

@@ -54,7 +54,7 @@ describe('Version helpers', function () {
         'v1.0.1-RC.2',
         'v1.0.0',
       ],
-      { pre: includePre }
+      { pre: includePre },
     ).expect('v1.0.1-RC.2')
     given(
       [
@@ -66,7 +66,7 @@ describe('Version helpers', function () {
         'v1.0.1-RC.2',
         'v1.0.1',
       ],
-      { pre: includePre }
+      { pre: includePre },
     ).expect('v1.0.1')
     given(
       [
@@ -76,7 +76,7 @@ describe('Version helpers', function () {
         'v1.0.1-beta.1',
         'v1.0.1-RC.1',
       ],
-      { pre: includePre }
+      { pre: includePre },
     ).expect('v1.0.1-RC.1')
 
     // Exclude pre-releases
@@ -116,7 +116,7 @@ describe('Version helpers', function () {
 
     // Semver mixed with non semver versions
     given(['1.0.0', '1.0.2', '1.1', '1.0', 'notaversion2', '12bcde4']).expect(
-      '1.1'
+      '1.1',
     )
 
     // build qualifiers - https://github.com/badges/shields/issues/4172
@@ -148,6 +148,70 @@ describe('Version helpers', function () {
     given({ version: '1.2.3', tag: 'next', defaultLabel: 'npm' }).expect({
       label: 'npm@next',
       message: 'v1.2.3',
+      color: 'blue',
+    })
+    given({ version: '1.2.3', defaultLabel: 'npm' }).expect({
+      label: 'npm',
+      message: 'v1.2.3',
+      color: 'blue',
+    })
+    given({ version: '1.2.3', suffix: 'tested' }).expect({
+      label: undefined,
+      message: 'v1.2.3 tested',
+      color: 'blue',
+    })
+    given({
+      version: '1.2.3',
+      tag: 'beta',
+      defaultLabel: 'github',
+      suffix: 'tested',
+    }).expect({
+      label: 'github@beta',
+      message: 'v1.2.3 tested',
+      color: 'blue',
+    })
+    given({ version: '1.2.3', prefix: '^' }).expect({
+      label: undefined,
+      message: '^1.2.3',
+      color: 'blue',
+    })
+    given({
+      version: '1.2.3',
+      tag: 'alpha',
+      defaultLabel: 'npm',
+      prefix: '^',
+    }).expect({
+      label: 'npm@alpha',
+      message: '^1.2.3',
+      color: 'blue',
+    })
+    given({
+      version: '1.2.3',
+      defaultLabel: 'npm',
+      prefix: '^',
+    }).expect({
+      label: 'npm',
+      message: '^1.2.3',
+      color: 'blue',
+    })
+    given({
+      version: '1.2.3',
+      prefix: '^',
+      suffix: 'tested',
+    }).expect({
+      label: undefined,
+      message: '^1.2.3 tested',
+      color: 'blue',
+    })
+    given({
+      version: '1.2.3',
+      tag: 'beta',
+      defaultLabel: 'github',
+      prefix: '^',
+      suffix: 'tested',
+    }).expect({
+      label: 'github@beta',
+      message: '^1.2.3 tested',
       color: 'blue',
     })
   })

@@ -2,41 +2,31 @@ import { pep440VersionColor } from '../color-formatters.js'
 import { renderVersionBadge } from '../version.js'
 import { isLockfile, getDependencyVersion } from '../pipenv-helpers.js'
 import { addv } from '../text-formatters.js'
-import { NotFound } from '../index.js'
+import { NotFound, pathParams } from '../index.js'
 import { ConditionalGithubAuthV3Service } from './github-auth-service.js'
 import { fetchJsonFromRepo } from './github-common-fetch.js'
 import { documentation as githubDocumentation } from './github-helpers.js'
 
-const keywords = ['pipfile']
+const description = `
+[Pipenv](https://github.com/pypa/pipenv) is a dependency
+manager for Python which manages a
+[virtualenv](https://virtualenv.pypa.io/en/latest/) for
+projects. It adds/removes packages from your \`Pipfile\` as
+you install/uninstall packages and generates the ever-important
+\`Pipfile.lock\`, which can be checked in to source control
+in order to produce deterministic builds.
 
-const documentation = `
-<p>
-  <a href="https://github.com/pypa/pipenv">Pipenv</a> is a dependency
-  manager for Python which manages a
-  <a href="https://virtualenv.pypa.io/en/latest/">virtualenv</a> for
-  projects. It adds/removes packages from your <code>Pipfile</code> as
-  you install/uninstall packages and generates the ever-important
-  <code>Pipfile.lock</code>, which can be checked in to source control
-  in order to produce deterministic builds.
-</p>
+The GitHub Pipenv badges are intended for applications using Pipenv
+which are hosted on GitHub.
 
-<p>
-  The GitHub Pipenv badges are intended for applications using Pipenv
-  which are hosted on GitHub.
-</p>
+When \`Pipfile.lock\` is checked in, the <strong>GitHub Pipenv
+locked dependency version</strong> badge displays the locked version of
+a dependency listed in \`[packages]\` or
+\`[dev-packages]\` (or any of their transitive dependencies).
 
-<p>
-  When <code>Pipfile.lock</code> is checked in, the <strong>GitHub Pipenv
-  locked dependency version</strong> badge displays the locked version of
-  a dependency listed in <code>[packages]</code> or
-  <code>[dev-packages]</code> (or any of their transitive dependencies).
-</p>
-
-<p>
-  Usually a Python version is specified in the <code>Pipfile</code>, which
-  <code>pipenv lock</code> then places in <code>Pipfile.lock</code>. The
-  <strong>GitHub Pipenv Python version</strong> badge displays that version.
-</p>
+Usually a Python version is specified in the \`Pipfile\`, which
+\`pipenv lock\` then places in \`Pipfile.lock\`.
+The <strong>GitHub Pipenv Python version</strong> badge displays that version.
 
 ${githubDocumentation}
 `
@@ -48,31 +38,29 @@ class GithubPipenvLockedPythonVersion extends ConditionalGithubAuthV3Service {
     pattern: ':user/:repo/:branch*',
   }
 
-  static examples = [
-    {
-      title: 'GitHub Pipenv locked Python version',
-      pattern: ':user/:repo',
-      namedParams: {
-        user: 'metabolize',
-        repo: 'rq-dashboard-on-heroku',
+  static openApi = {
+    '/github/pipenv/locked/python-version/{user}/{repo}': {
+      get: {
+        summary: 'GitHub Pipenv locked Python version',
+        description,
+        parameters: pathParams(
+          { name: 'user', example: 'metabolize' },
+          { name: 'repo', example: 'rq-dashboard-on-heroku' },
+        ),
       },
-      staticPreview: this.render({ version: '3.7' }),
-      documentation,
-      keywords,
     },
-    {
-      title: 'GitHub Pipenv locked Python version (branch)',
-      pattern: ':user/:repo/:branch',
-      namedParams: {
-        user: 'metabolize',
-        repo: 'rq-dashboard-on-heroku',
-        branch: 'master',
+    '/github/pipenv/locked/python-version/{user}/{repo}/{branch}': {
+      get: {
+        summary: 'GitHub Pipenv locked Python version (branch)',
+        description,
+        parameters: pathParams(
+          { name: 'user', example: 'metabolize' },
+          { name: 'repo', example: 'rq-dashboard-on-heroku' },
+          { name: 'branch', example: 'main' },
+        ),
       },
-      staticPreview: this.render({ version: '3.7', branch: 'master' }),
-      documentation,
-      keywords,
     },
-  ]
+  }
 
   static defaultBadgeData = { label: 'python' }
 
@@ -111,37 +99,57 @@ class GithubPipenvLockedDependencyVersion extends ConditionalGithubAuthV3Service
     pattern: ':user/:repo/:kind(dev)?/:packageName/:branch*',
   }
 
-  static examples = [
-    {
-      title: 'GitHub Pipenv locked dependency version',
-      pattern: ':user/:repo/:kind(dev)?/:packageName',
-      namedParams: {
-        user: 'metabolize',
-        repo: 'rq-dashboard-on-heroku',
-        packageName: 'flask',
+  static openApi = {
+    '/github/pipenv/locked/dependency-version/{user}/{repo}/{packageName}': {
+      get: {
+        summary: 'GitHub Pipenv locked dependency version',
+        description,
+        parameters: pathParams(
+          { name: 'user', example: 'metabolize' },
+          { name: 'repo', example: 'rq-dashboard-on-heroku' },
+          { name: 'packageName', example: 'flask' },
+        ),
       },
-      staticPreview: this.render({
-        dependency: 'flask',
-        version: '1.1.1',
-      }),
-      documentation,
-      keywords: ['python', ...keywords],
     },
-    {
-      title: 'GitHub Pipenv locked dependency version (branch)',
-      pattern: ':user/:repo/:kind(dev)?/:packageName/:branch',
-      namedParams: {
-        user: 'metabolize',
-        repo: 'rq-dashboard-on-heroku',
-        kind: 'dev',
-        packageName: 'black',
-        branch: 'master',
+    '/github/pipenv/locked/dependency-version/{user}/{repo}/{packageName}/{branch}':
+      {
+        get: {
+          summary: 'GitHub Pipenv locked dependency version (branch)',
+          description,
+          parameters: pathParams(
+            { name: 'user', example: 'metabolize' },
+            { name: 'repo', example: 'rq-dashboard-on-heroku' },
+            { name: 'packageName', example: 'flask' },
+            { name: 'branch', example: 'main' },
+          ),
+        },
       },
-      staticPreview: this.render({ dependency: 'black', version: '19.3b0' }),
-      documentation,
-      keywords: ['python', ...keywords],
-    },
-  ]
+    '/github/pipenv/locked/dependency-version/{user}/{repo}/dev/{packageName}':
+      {
+        get: {
+          summary: 'GitHub Pipenv locked dev dependency version',
+          description,
+          parameters: pathParams(
+            { name: 'user', example: 'metabolize' },
+            { name: 'repo', example: 'rq-dashboard-on-heroku' },
+            { name: 'packageName', example: 'black' },
+          ),
+        },
+      },
+    '/github/pipenv/locked/dependency-version/{user}/{repo}/dev/{packageName}/{branch}':
+      {
+        get: {
+          summary: 'GitHub Pipenv locked dev dependency version (branch)',
+          description,
+          parameters: pathParams(
+            { name: 'user', example: 'metabolize' },
+            { name: 'repo', example: 'rq-dashboard-on-heroku' },
+            { name: 'packageName', example: 'black' },
+            { name: 'branch', example: 'main' },
+          ),
+        },
+      },
+  }
 
   static defaultBadgeData = { label: 'dependency' }
 

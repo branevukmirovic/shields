@@ -1,9 +1,10 @@
 import Joi from 'joi'
-import chai from 'chai'
+import { expect, use } from 'chai'
 import sinon from 'sinon'
 import prometheus from 'prom-client'
 import chaiAsPromised from 'chai-as-promised'
 import PrometheusMetrics from '../server/prometheus-metrics.js'
+import { pathParam, queryParam } from './openapi.js'
 import trace from './trace.js'
 import {
   NotFound,
@@ -15,8 +16,7 @@ import {
 import BaseService from './base.js'
 import { MetricHelper, MetricNames } from './metric-helper.js'
 import '../register-chai-plugins.spec.js'
-const { expect } = chai
-chai.use(chaiAsPromised)
+use(chaiAsPromised)
 
 const queryParamSchema = Joi.object({
   queryParamA: Joi.string(),
@@ -31,14 +31,17 @@ class DummyService extends BaseService {
   static category = 'other'
   static route = { base: 'foo', pattern: ':namedParamA', queryParamSchema }
 
-  static examples = [
-    {
-      pattern: ':world',
-      namedParams: { world: 'World' },
-      staticPreview: this.render({ namedParamA: 'foo', queryParamA: 'bar' }),
-      keywords: ['hello'],
+  static openApi = {
+    '/foo/{namedParamA}': {
+      get: {
+        summary: 'Dummy Service',
+        parameters: [
+          pathParam({ name: 'namedParamA', example: 'foo' }),
+          queryParam({ name: 'queryParamA', example: 'bar' }),
+        ],
+      },
     },
-  ]
+  }
 
   static defaultBadgeData = { label: 'cat', namedLogo: 'appveyor' }
 
@@ -72,8 +75,8 @@ describe('BaseService', function () {
         {},
         defaultConfig,
         { namedParamA: 'bar.bar.bar' },
-        { queryParamA: '!' }
-      )
+        { queryParamA: '!' },
+      ),
     ).to.deep.equal({
       message: 'Hello namedParamA: bar.bar.bar with queryParamA: !',
     })
@@ -85,8 +88,8 @@ describe('BaseService', function () {
         {},
         defaultConfig,
         { namedParamA: 'bar.bar.bar' },
-        { queryParamA: ['foo', 'bar'] }
-      )
+        { queryParamA: ['foo', 'bar'] },
+      ),
     ).to.deep.equal({
       color: 'red',
       isError: true,
@@ -97,13 +100,13 @@ describe('BaseService', function () {
   describe('Required overrides', function () {
     it('Should throw if render() is not overridden', function () {
       expect(() => BaseService.render()).to.throw(
-        /^render\(\) function not implemented for BaseService$/
+        /^render\(\) function not implemented for BaseService$/,
       )
     })
 
     it('Should throw if route is not overridden', function () {
       return expect(BaseService.invoke({}, {}, {})).to.be.rejectedWith(
-        /^Route not defined for BaseService$/
+        /^Route not defined for BaseService$/,
       )
     })
 
@@ -112,13 +115,13 @@ describe('BaseService', function () {
     }
     it('Should throw if handle() is not overridden', function () {
       return expect(WithRoute.invoke({}, {}, {})).to.be.rejectedWith(
-        /^Handler not implemented for WithRoute$/
+        /^Handler not implemented for WithRoute$/,
       )
     })
 
     it('Should throw if category is not overridden', function () {
       expect(() => BaseService.category).to.throw(
-        /^Category not set for BaseService$/
+        /^Category not set for BaseService$/,
       )
     })
   })
@@ -135,25 +138,25 @@ describe('BaseService', function () {
         {},
         defaultConfig,
         { namedParamA: 'bar.bar.bar' },
-        { queryParamA: '!' }
+        { queryParamA: '!' },
       )
       expect(trace.logTrace).to.be.calledWithMatch(
         'inbound',
         sinon.match.string,
         'Service class',
-        'DummyService'
+        'DummyService',
       )
       expect(trace.logTrace).to.be.calledWith(
         'inbound',
         sinon.match.string,
         'Named params',
-        { namedParamA: 'bar.bar.bar' }
+        { namedParamA: 'bar.bar.bar' },
       )
       expect(trace.logTrace).to.be.calledWith(
         'inbound',
         sinon.match.string,
         'Query params after validation',
-        { queryParamA: '!' }
+        { queryParamA: '!' },
       )
     })
   })
@@ -171,7 +174,7 @@ describe('BaseService', function () {
       const serviceData = await LinkService.invoke(
         {},
         { handleInternalErrors: false },
-        { namedParamA: 'bar.bar.bar' }
+        { namedParamA: 'bar.bar.bar' },
       )
 
       expect(serviceData).to.deep.equal({
@@ -194,7 +197,7 @@ describe('BaseService', function () {
           await ThrowingService.invoke(
             {},
             { handleInternalErrors: false },
-            { namedParamA: 'bar.bar.bar' }
+            { namedParamA: 'bar.bar.bar' },
           )
           expect.fail('Expected to throw')
         } catch (e) {
@@ -212,7 +215,7 @@ describe('BaseService', function () {
           await ThrowingService.invoke(
             {},
             { handleInternalErrors: false },
-            { namedParamA: 'bar.bar.bar' }
+            { namedParamA: 'bar.bar.bar' },
           )
           expect.fail('Expected to throw')
         } catch (e) {
@@ -233,8 +236,8 @@ describe('BaseService', function () {
         await ThrowingService.invoke(
           {},
           { handleInternalErrors: true },
-          { namedParamA: 'bar.bar.bar' }
-        )
+          { namedParamA: 'bar.bar.bar' },
+        ),
       ).to.deep.equal({
         isError: true,
         color: 'lightgray',
@@ -251,7 +254,7 @@ describe('BaseService', function () {
           }
         }
         expect(
-          await ThrowingService.invoke({}, {}, { namedParamA: 'bar.bar.bar' })
+          await ThrowingService.invoke({}, {}, { namedParamA: 'bar.bar.bar' }),
         ).to.deep.equal({
           isError: true,
           color: 'red',
@@ -266,7 +269,7 @@ describe('BaseService', function () {
           }
         }
         expect(
-          await ThrowingService.invoke({}, {}, { namedParamA: 'bar.bar.bar' })
+          await ThrowingService.invoke({}, {}, { namedParamA: 'bar.bar.bar' }),
         ).to.deep.equal({
           isError: true,
           color: 'lightgray',
@@ -281,7 +284,7 @@ describe('BaseService', function () {
           }
         }
         expect(
-          await ThrowingService.invoke({}, {}, { namedParamA: 'bar.bar.bar' })
+          await ThrowingService.invoke({}, {}, { namedParamA: 'bar.bar.bar' }),
         ).to.deep.equal({
           isError: true,
           color: 'lightgray',
@@ -296,7 +299,7 @@ describe('BaseService', function () {
           }
         }
         expect(
-          await ThrowingService.invoke({}, {}, { namedParamA: 'bar.bar.bar' })
+          await ThrowingService.invoke({}, {}, { namedParamA: 'bar.bar.bar' }),
         ).to.deep.equal({
           isError: true,
           color: 'lightgray',
@@ -311,7 +314,7 @@ describe('BaseService', function () {
           }
         }
         expect(
-          await ThrowingService.invoke({}, {}, { namedParamA: 'bar.bar.bar' })
+          await ThrowingService.invoke({}, {}, { namedParamA: 'bar.bar.bar' }),
         ).to.deep.equal({
           isError: true,
           color: 'red',
@@ -322,7 +325,7 @@ describe('BaseService', function () {
   })
 
   describe('ScoutCamp integration', function () {
-    // TODO Strangly, without the useless escape the regexes do not match in Node 12.
+    // TODO Strangely, without the useless escape the regexes do not match in Node 12.
     // eslint-disable-next-line no-useless-escape
     const expectedRouteRegex = /^\/foo(?:\/([^\/#\?]+?))(|\.svg|\.json)$/
 
@@ -336,7 +339,7 @@ describe('BaseService', function () {
       mockHandleRequest = sinon.spy()
       DummyService.register(
         { camp: mockCamp, handleRequest: mockHandleRequest },
-        defaultConfig
+        defaultConfig,
       )
     })
 
@@ -373,7 +376,7 @@ describe('BaseService', function () {
         namedLogo: undefined,
         logo: undefined,
         logoWidth: undefined,
-        logoPosition: undefined,
+        logoSize: undefined,
         links: [],
         labelColor: undefined,
         cacheLengthSeconds: undefined,
@@ -383,7 +386,7 @@ describe('BaseService', function () {
 
   describe('getDefinition', function () {
     it('returns the expected result', function () {
-      const { category, name, isDeprecated, route, examples } =
+      const { category, name, isDeprecated, route, openApi } =
         DummyService.getDefinition()
       expect({
         category,
@@ -400,7 +403,7 @@ describe('BaseService', function () {
         },
       })
       // The in-depth tests for examples reside in examples.spec.js
-      expect(examples).to.have.lengthOf(1)
+      expect(Object.keys(openApi)).to.have.lengthOf(1)
     })
   })
 
@@ -413,8 +416,8 @@ describe('BaseService', function () {
       expect(() =>
         DummyService._validate(
           { requiredString: ['this', "shouldn't", 'work'] },
-          dummySchema
-        )
+          dummySchema,
+        ),
       )
         .to.throw()
         .instanceof(InvalidResponse)
@@ -436,24 +439,31 @@ describe('BaseService', function () {
       })
       const serviceInstance = new DummyService(
         { requestFetcher },
-        defaultConfig
+        defaultConfig,
       )
 
       const url = 'some-url'
-      const options = { headers: { Cookie: 'some-cookie' } }
+      const options = {
+        headers: { Cookie: 'some-cookie' },
+        searchParams: { param1: 'foobar', param2: undefined },
+      }
       await serviceInstance._request({ url, options })
 
       expect(trace.logTrace).to.be.calledWithMatch(
         'fetch',
         sinon.match.string,
         'Request',
-        `${url}\n${JSON.stringify(options, null, 2)}`
+        `${url}?param1=foobar\n${JSON.stringify(
+          { headers: options.headers },
+          null,
+          2,
+        )}`,
       )
       expect(trace.logTrace).to.be.calledWithMatch(
         'fetch',
         sinon.match.string,
         'Response status code',
-        200
+        200,
       )
     })
 
@@ -464,7 +474,7 @@ describe('BaseService', function () {
       })
       const serviceInstance = new DummyService(
         { requestFetcher },
-        defaultConfig
+        defaultConfig,
       )
 
       try {
@@ -497,17 +507,17 @@ describe('BaseService', function () {
       const serviceInstance =
         new DummyServiceWithServiceResponseSizeMetricEnabled(
           { requestFetcher, metricHelper },
-          defaultConfig
+          defaultConfig,
         )
 
       await serviceInstance._request({ url })
 
       expect(await register.getSingleMetricAsString('service_response_bytes'))
         .to.contain(
-          'service_response_bytes_bucket{le="65536",category="other",family="undefined",service="dummy_service_with_service_response_size_metric_enabled"} 0\n'
+          'service_response_bytes_bucket{le="65536",category="other",family="undefined",service="dummy_service_with_service_response_size_metric_enabled"} 0\n',
         )
         .and.to.contain(
-          'service_response_bytes_bucket{le="131072",category="other",family="undefined",service="dummy_service_with_service_response_size_metric_enabled"} 1\n'
+          'service_response_bytes_bucket{le="131072",category="other",family="undefined",service="dummy_service_with_service_response_size_metric_enabled"} 1\n',
         )
     })
 
@@ -522,16 +532,17 @@ describe('BaseService', function () {
       })
       const serviceInstance = new DummyService(
         { requestFetcher, metricHelper },
-        defaultConfig
+        defaultConfig,
       )
 
       await serviceInstance._request({ url })
 
       expect(
-        await register.getSingleMetricAsString('service_response_bytes')
+        await register.getSingleMetricAsString('service_response_bytes'),
       ).to.not.contain('service_response_bytes_bucket')
     })
   })
+
   describe('auth', function () {
     class AuthService extends DummyService {
       static auth = {
@@ -558,8 +569,8 @@ describe('BaseService', function () {
             },
             private: { myci_pass: 'abc123' },
           },
-          { namedParamA: 'bar.bar.bar' }
-        )
+          { namedParamA: 'bar.bar.bar' },
+        ),
       ).to.deep.equal({ message: 'The CI password is abc123' })
     })
 
@@ -576,13 +587,53 @@ describe('BaseService', function () {
           },
           {
             namedParamA: 'bar.bar.bar',
-          }
-        )
+          },
+        ),
       ).to.deep.equal({
         color: 'lightgray',
         isError: true,
         message: 'credentials have not been configured',
       })
+    })
+  })
+
+  describe('getEnum', function () {
+    class EnumService extends DummyService {
+      static route = {
+        base: 'foo',
+        pattern: ':namedParamA/:namedParamB(this|that)',
+        queryParamSchema,
+      }
+    }
+
+    it('returns an array of allowed values', async function () {
+      expect(EnumService.getEnum('namedParamB')).to.deep.equal(['this', 'that'])
+    })
+
+    it('throws if param name is invalid', async function () {
+      expect(() => EnumService.getEnum('notAValidParam')).to.throw(
+        'Could not extract enum for param notAValidParam from pattern :namedParamA/:namedParamB(this|that)',
+      )
+    })
+
+    it('throws if param name is not an enum', async function () {
+      expect(() => EnumService.getEnum('namedParamA')).to.throw(
+        'Could not extract enum for param namedParamA from pattern :namedParamA/:namedParamB(this|that)',
+      )
+    })
+
+    it('throws if route does not have a pattern', async function () {
+      class FormatService extends DummyService {
+        static route = {
+          base: 'foo',
+          format: '([^/]+?)',
+          queryParamSchema,
+        }
+      }
+
+      expect(() => FormatService.getEnum('notAValidParam')).to.throw(
+        'getEnum() requires route to have a .pattern property',
+      )
     })
   })
 })

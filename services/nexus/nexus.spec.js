@@ -92,7 +92,7 @@ describe('Nexus', function () {
         } catch (e) {
           expect(e).to.be.an.instanceof(NotFound)
           expect(e.prettyMessage).to.equal(
-            'artifact or snapshot version not found'
+            'artifact or snapshot version not found',
           )
         }
       })
@@ -151,9 +151,10 @@ describe('Nexus', function () {
           },
           {
             server: 'https://repository.jboss.org/nexus',
-          }
-        )
+          },
+        ),
       ).to.deep.equal({
+        label: undefined,
         message: 'v2.3.4',
         color: 'blue',
       })

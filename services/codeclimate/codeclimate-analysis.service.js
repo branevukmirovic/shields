@@ -1,8 +1,8 @@
 import Joi from 'joi'
 import { colorScale, letterScore } from '../color-formatters.js'
 import { nonNegativeInteger } from '../validators.js'
-import { BaseJsonService, NotFound } from '../index.js'
-import { keywords, isLetterGrade, fetchRepo } from './codeclimate-common.js'
+import { BaseJsonService, NotFound, pathParams } from '../index.js'
+import { isLetterGrade, fetchRepo } from './codeclimate-common.js'
 
 const schema = Joi.object({
   data: Joi.object({
@@ -17,7 +17,7 @@ const schema = Joi.object({
             measure: Joi.object({
               value: Joi.number().required(),
             }).required(),
-          })
+          }),
         )
         .length(1)
         .required(),
@@ -27,15 +27,15 @@ const schema = Joi.object({
 
 const maintainabilityColorScale = colorScale(
   [50, 80, 90, 95],
-  ['red', 'yellow', 'yellowgreen', 'green', 'brightgreen']
+  ['red', 'yellow', 'yellowgreen', 'green', 'brightgreen'],
 )
 const techDebtColorScale = colorScale(
   [5, 10, 20, 50],
-  ['brightgreen', 'green', 'yellowgreen', 'yellow', 'red']
+  ['brightgreen', 'green', 'yellowgreen', 'yellow', 'red'],
 )
 const issueColorScale = colorScale(
   [1, 5, 10, 20],
-  ['brightgreen', 'green', 'yellowgreen', 'yellow', 'red']
+  ['brightgreen', 'green', 'yellowgreen', 'yellow', 'red'],
 )
 
 const variantMap = {
@@ -93,43 +93,43 @@ export default class CodeclimateAnalysis extends BaseJsonService {
       ':variant(maintainability|maintainability-percentage|tech-debt|issues)/:user/:repo',
   }
 
-  static examples = [
-    {
-      title: 'Code Climate maintainability',
-      pattern:
-        ':format(maintainability|maintainability-percentage)/:user/:repo',
-      namedParams: {
-        format: 'maintainability',
-        user: 'angular',
-        repo: 'angular',
+  static openApi = {
+    '/codeclimate/{variant}/{user}/{repo}': {
+      get: {
+        summary: 'Code Climate maintainability',
+        parameters: pathParams(
+          {
+            name: 'variant',
+            example: 'maintainability',
+            schema: {
+              type: 'string',
+              enum: ['maintainability', 'maintainability-percentage'],
+            },
+          },
+          { name: 'user', example: 'tensorflow' },
+          { name: 'repo', example: 'models' },
+        ),
       },
-      staticPreview: this.render({
-        variant: 'maintainability',
-        maintainabilityLetter: 'F',
-      }),
-      keywords,
     },
-    {
-      title: 'Code Climate issues',
-      pattern: 'issues/:user/:repo',
-      namedParams: { user: 'twbs', repo: 'bootstrap' },
-      staticPreview: this.render({
-        variant: 'issues',
-        issueCount: '89',
-      }),
-      keywords,
+    '/codeclimate/tech-debt/{user}/{repo}': {
+      get: {
+        summary: 'Code Climate technical debt',
+        parameters: pathParams(
+          { name: 'user', example: 'tensorflow' },
+          { name: 'repo', example: 'models' },
+        ),
+      },
     },
-    {
-      title: 'Code Climate technical debt',
-      pattern: 'tech-debt/:user/:repo',
-      namedParams: { user: 'angular', repo: 'angular' },
-      staticPreview: this.render({
-        variant: 'tech-debt',
-        techDebtPercentage: 3.0,
-      }),
-      keywords,
+    '/codeclimate/issues/{user}/{repo}': {
+      get: {
+        summary: 'Code Climate issues',
+        parameters: pathParams(
+          { name: 'user', example: 'tensorflow' },
+          { name: 'repo', example: 'models' },
+        ),
+      },
     },
-  ]
+  }
 
   static render({ variant, ...props }) {
     const { render } = variantMap[variant]
@@ -140,7 +140,7 @@ export default class CodeclimateAnalysis extends BaseJsonService {
   async fetch({ user, repo }) {
     const repoInfos = await fetchRepo(this, { user, repo })
     const repoInfosWithSnapshot = repoInfos.filter(
-      repoInfo => repoInfo.relationships.latest_default_branch_snapshot.data
+      repoInfo => repoInfo.relationships.latest_default_branch_snapshot.data,
     )
     if (repoInfosWithSnapshot.length === 0) {
       throw new NotFound({ prettyMessage: 'snapshot not found' })
