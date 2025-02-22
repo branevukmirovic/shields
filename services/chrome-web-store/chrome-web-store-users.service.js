@@ -1,18 +1,22 @@
 import { renderDownloadsBadge } from '../downloads.js'
-import { redirector, NotFound } from '../index.js'
+import { redirector, NotFound, pathParams } from '../index.js'
 import BaseChromeWebStoreService from './chrome-web-store-base.js'
 
 class ChromeWebStoreUsers extends BaseChromeWebStoreService {
   static category = 'downloads'
   static route = { base: 'chrome-web-store/users', pattern: ':storeId' }
 
-  static examples = [
-    {
-      title: 'Chrome Web Store',
-      namedParams: { storeId: 'ogffaloegjglncjfehdfplabnoondfjo' },
-      staticPreview: renderDownloadsBadge({ downloads: 573 }),
+  static openApi = {
+    '/chrome-web-store/users/{storeId}': {
+      get: {
+        summary: 'Chrome Web Store Users',
+        parameters: pathParams({
+          name: 'storeId',
+          example: 'ogffaloegjglncjfehdfplabnoondfjo',
+        }),
+      },
     },
-  ]
+  }
 
   static defaultBadgeData = { label: 'users' }
 
@@ -22,7 +26,9 @@ class ChromeWebStoreUsers extends BaseChromeWebStoreService {
     if (downloads == null) {
       throw new NotFound({ prettyMessage: 'not found' })
     }
-    return renderDownloadsBadge({ downloads })
+    return renderDownloadsBadge({
+      downloads: String(downloads.replace(',', '')),
+    })
   }
 }
 

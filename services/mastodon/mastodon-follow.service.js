@@ -1,7 +1,7 @@
 import Joi from 'joi'
 import { metric } from '../text-formatters.js'
-import { optionalUrl, nonNegativeInteger } from '../validators.js'
-import { BaseJsonService, NotFound } from '../index.js'
+import { nonNegativeInteger } from '../validators.js'
+import { BaseJsonService, NotFound, pathParam, queryParam } from '../index.js'
 
 const schema = Joi.object({
   username: Joi.string().required(),
@@ -9,13 +9,11 @@ const schema = Joi.object({
 })
 
 const queryParamSchema = Joi.object({
-  domain: optionalUrl,
+  domain: Joi.string().optional(),
 }).required()
 
-const documentation = `
-<p>To find your user id, you can use <a link target="_blank" href="https://prouser123.me/misc/mastodon-userid-lookup.html">this tool</a>.</p><br>
-<p>Alternatively you can make a request to <code><br>https://your.mastodon.server/.well-known/webfinger?resource=acct:{user}@{domain}</br></code></p>
-<p>Failing that, you can also visit your profile page, where your user ID will be in the header in a tag like this: <code>&lt;link href='https://your.mastodon.server/api/salmon/{your-user-id}' rel='salmon'></code></p>
+const description = `
+To find your user id, you can make a request to \`https://your.mastodon.server/api/v1/accounts/lookup?acct=yourusername\`.
 `
 
 export default class MastodonFollow extends BaseJsonService {
@@ -27,21 +25,24 @@ export default class MastodonFollow extends BaseJsonService {
     queryParamSchema,
   }
 
-  static examples = [
-    {
-      title: 'Mastodon Follow',
-      namedParams: {
-        id: '26471',
+  static openApi = {
+    '/mastodon/follow/{id}': {
+      get: {
+        summary: 'Mastodon Follow',
+        description,
+        parameters: [
+          pathParam({
+            name: 'id',
+            example: '26471',
+          }),
+          queryParam({
+            name: 'domain',
+            example: 'mastodon.social',
+          }),
+        ],
       },
-      queryParams: { domain: 'https://mastodon.social' },
-      staticPreview: {
-        label: 'Follow',
-        message: '862',
-        style: 'social',
-      },
-      documentation,
     },
-  ]
+  }
 
   static defaultBadgeData = {
     namedLogo: 'mastodon',
@@ -53,8 +54,8 @@ export default class MastodonFollow extends BaseJsonService {
       message: metric(followers),
       style: 'social',
       link: [
-        `${domain}/users/${username}/remote_follow`,
-        `${domain}/users/${username}/followers`,
+        `https://${domain}/users/${username}`,
+        `https://${domain}/users/${username}/followers`,
       ],
     }
   }
@@ -62,13 +63,14 @@ export default class MastodonFollow extends BaseJsonService {
   async fetch({ id, domain }) {
     return this._requestJson({
       schema,
-      url: `${domain}/api/v1/accounts/${id}/`,
+      url: `https://${domain}/api/v1/accounts/${id}/`,
     })
   }
 
-  async handle({ id }, { domain = 'https://mastodon.social' }) {
+  async handle({ id }, { domain = 'mastodon.social' }) {
     if (isNaN(id))
       throw new NotFound({ prettyMessage: 'invalid user id format' })
+    domain = domain.replace(/^https?:\/\//, '')
     const data = await this.fetch({ id, domain })
     return this.constructor.render({
       username: data.username,

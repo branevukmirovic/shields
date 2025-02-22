@@ -5,8 +5,7 @@
  * @module
  */
 
-import dayjs from 'dayjs'
-import pep440 from '@renovate/pep440'
+import pep440 from '@renovatebot/pep440'
 
 /**
  * Determines the color used for a badge based on version.
@@ -23,7 +22,10 @@ function version(version) {
   if (first === 'v') {
     first = version[1]
   }
-  if (first === '0' || /alpha|beta|snapshot|dev|pre/i.test(version)) {
+  if (
+    first === '0' ||
+    /alpha|beta|snapshot|dev|pre|rc|scm|cvs/i.test(version)
+  ) {
     return 'orange'
   } else {
     return 'blue'
@@ -155,7 +157,7 @@ function colorScale(steps, colors, reversed) {
 
   if (steps.length !== colors.length - 1) {
     throw Error(
-      'When colors are provided, there should be n + 1 colors for n steps.'
+      'When colors are provided, there should be n + 1 colors for n steps.',
     )
   }
 
@@ -172,27 +174,12 @@ function colorScale(steps, colors, reversed) {
   }
 }
 
-/**
- * Determines the color used for a badge according to the age.
- * Age is calculated as days elapsed till current date.
- * The color varies from bright green to red as the age increases.
- *
- * @param {string} date Date string
- * @returns {string} Badge color
- */
-function age(date) {
-  const colorByAge = colorScale([7, 30, 180, 365, 730], undefined, true)
-  const daysElapsed = dayjs().diff(dayjs(date), 'days')
-  return colorByAge(daysElapsed)
-}
-
 export {
-  version,
-  pep440VersionColor,
-  downloadCount,
+  colorScale,
   coveragePercentage,
+  downloadCount,
   floorCount,
   letterScore,
-  colorScale,
-  age,
+  pep440VersionColor,
+  version,
 }

@@ -3,31 +3,23 @@
         height="130">
 </p>
 <p align="center">
-    <a href="https://github.com/badges/shields/graphs/contributors" alt="Contributors">
-        <img src="https://img.shields.io/github/contributors/badges/shields" /></a>
-    <a href="#backers" alt="Backers on Open Collective">
+    <a href="https://shields.io/community#backers" alt="Backers on Open Collective">
         <img src="https://img.shields.io/opencollective/backers/shields" /></a>
-    <a href="#sponsors" alt="Sponsors on Open Collective">
+    <a href="https://shields.io/community#sponsors" alt="Sponsors on Open Collective">
         <img src="https://img.shields.io/opencollective/sponsors/shields" /></a>
     <a href="https://github.com/badges/shields/pulse" alt="Activity">
         <img src="https://img.shields.io/github/commit-activity/m/badges/shields" /></a>
-    <a href="https://circleci.com/gh/badges/shields/tree/master">
-        <img src="https://img.shields.io/circleci/project/github/badges/shields/master" alt="build status"></a>
-    <a href="https://circleci.com/gh/badges/daily-tests">
-        <img src="https://img.shields.io/circleci/project/github/badges/daily-tests?label=service%20tests"
-            alt="service-test status"></a>
+    <a href="https://github.com/badges/shields/discussions" alt="Discussions">
+        <img src="https://img.shields.io/github/discussions/badges/shields" /></a>
+    <a href="https://github.com/badges/shields/actions/workflows/daily-tests.yml">
+        <img src="https://img.shields.io/github/actions/workflow/status/badges/shields/daily-tests.yml?label=daily%20tests"
+            alt="Daily Tests Status"></a>
     <a href="https://coveralls.io/github/badges/shields">
         <img src="https://img.shields.io/coveralls/github/badges/shields"
-            alt="coverage"></a>
-    <a href="https://lgtm.com/projects/g/badges/shields/alerts/">
-        <img src="https://img.shields.io/lgtm/alerts/g/badges/shields"
-            alt="Total alerts"/></a>
+            alt="Code Coverage"></a>
     <a href="https://discord.gg/HjJCwm5">
-        <img src="https://img.shields.io/discord/308323056592486420?logo=discord"
-            alt="chat on Discord"></a>
-    <a href="https://twitter.com/intent/follow?screen_name=shields_io">
-        <img src="https://img.shields.io/twitter/follow/shields_io?style=social&logo=twitter"
-            alt="follow on Twitter"></a>
+        <img src="https://img.shields.io/discord/308323056592486420?logo=discord&logoColor=white"
+            alt="Chat on Discord"></a>
 </p>
 
 This is home to [Shields.io][shields.io], a service for concise, consistent,
@@ -35,7 +27,7 @@ and legible badges in SVG and raster format, which can easily be included in
 GitHub readmes or any other web page. The service supports dozens of
 continuous integration services, package registries, distributions, app
 stores, social networks, code coverage services, and code analysis services.
-Every month it serves over 870 million images and is used by some of the
+Every month it serves over 1.6 billion images and is used by some of the
 world's most popular open-source projects, [VS Code][vscode], [Vue.js][vue]
 and [Bootstrap][bootstrap] to name a few.
 
@@ -68,12 +60,12 @@ This repo hosts:
 - amount of [Liberapay](https://liberapay.com/) donations per week: ![receives](https://img.shields.io/badge/receives-2.00%20USD%2Fweek-yellow)
 - Python package downloads: ![downloads](https://img.shields.io/badge/downloads-13k%2Fmonth-brightgreen)
 - Chrome Web Store extension rating: ![rating](https://img.shields.io/badge/rating-★★★★☆-brightgreen)
-- [Uptime Robot](https://uptimerobot.com) percentage: ![uptime](https://img.shields.io/badge/uptime-100%25-brightgreen)
+- Uptime Robot uptime percentage: ![uptime](https://img.shields.io/badge/uptime-100%25-brightgreen)
 
 [Make your own badges!][custom badges]
 (Quick example: `https://img.shields.io/badge/left-right-f39f37`)
 
-[custom badges]: https://shields.io/#your-badge
+[custom badges]: https://img.shields.io/badges/static-badge
 
 ### Quickstart
 
@@ -95,14 +87,17 @@ You can read a [tutorial on how to add a badge][tutorial].
 
 [![GitHub issues by-label](https://img.shields.io/github/issues/badges/shields/good%20first%20issue)](https://github.com/badges/shields/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 
+If you intend on reporting or contributing a fix related to security vulnerabilities, please first refer to our [security policy][security].
+
 [service-tests]: https://github.com/badges/shields/blob/master/doc/service-tests.md
 [tutorial]: https://github.com/badges/shields/blob/master/doc/TUTORIAL.md
 [contributing]: https://github.com/badges/shields/blob/master/CONTRIBUTING.md
+[security]: https://github.com/badges/shields/blob/master/SECURITY.md
 
 ## Development
 
-1. Install Node 16 or later. You can use the [package manager][] of your choice.
-   Tests need to pass in Node 16 and 17.
+1. Install Node 20 or later. You can use the [package manager][] of your choice.
+   Tests need to pass in Node 20 and 22.
 2. Clone this repository.
 3. Run `npm ci` to install the dependencies.
 4. Run `npm start` to start the badge server and the frontend dev server.
@@ -110,9 +105,9 @@ You can read a [tutorial on how to add a badge][tutorial].
 
 When server source files change, the badge server should automatically restart
 itself (using [nodemon][]). When the frontend files change, the frontend dev
-server (`gatsby dev`) should also automatically reload. However the badge
+server (`docusaurus start`) should also automatically reload. However the badge
 definitions are built only before the server first starts. To regenerate those,
-either run `npm run defs` or manually restart the server.
+either run `npm run prestart` or manually restart the server.
 
 To debug a badge from the command line, run `npm run badge -- /npm/v/nock`.
 It also works with full URLs like
@@ -136,7 +131,7 @@ snapshots, and `SNAPSHOT_UPDATE=1 npm run test:package` to update them.
 
 The server can be configured to use [Sentry][] ([configuration][sentry configuration]) and [Prometheus][] ([configuration][prometheus configuration]).
 
-Daily tests, including a full run of the service tests and overall code coverage, are run via [badges/daily-tests][daily-tests].
+Our [full test suite][full test suite] as well as [code coverage][code coverage] are run on a daily basis.
 
 [package manager]: https://nodejs.org/en/download/package-manager/
 [gitpod]: https://www.gitpod.io/
@@ -145,10 +140,11 @@ Daily tests, including a full run of the service tests and overall code coverage
 [prometheus configuration]: https://github.com/badges/shields/blob/master/doc/self-hosting.md#prometheus
 [sentry]: https://sentry.io/
 [sentry configuration]: https://github.com/badges/shields/blob/master/doc/self-hosting.md#sentry
-[daily-tests]: https://github.com/badges/daily-tests
 [nodemon]: https://nodemon.io/
 [nodemon debug]: https://github.com/Microsoft/vscode-recipes/tree/master/nodemon
 [vs code]: https://code.visualstudio.com/
+[full test suite]: https://github.com/badges/shields/actions/workflows/daily-tests.yml
+[code coverage]: https://coveralls.io/github/badges/shields
 
 ## Hosting your own server
 
@@ -202,33 +198,24 @@ You can read more about [the project's inception][thread],
 
 Maintainers:
 
-- [calebcartwright](https://github.com/calebcartwright) (core team)
-- [chris48s](https://github.com/chris48s) (core team)
-- [Daniel15](https://github.com/Daniel15) (core team)
-- [paulmelnikow](https://github.com/paulmelnikow) (core team)
-- [platan](https://github.com/platan) (core team)
-- [PyvesB](https://github.com/PyvesB) (core team)
-- [RedSparr0w](https://github.com/RedSparr0w) (core team)
-
-Operations:
-
 - [calebcartwright](https://github.com/calebcartwright)
 - [chris48s](https://github.com/chris48s)
+- [jNullj](https://github.com/jnullj)
 - [paulmelnikow](https://github.com/paulmelnikow)
 - [PyvesB](https://github.com/PyvesB)
 
 Alumni:
 
+- [Daniel15](https://github.com/Daniel15)
 - [espadrine](https://github.com/espadrine)
 - [olivierlacan](https://github.com/olivierlacan)
+- [platan](https://github.com/platan)
+- [RedSparr0w](https://github.com/RedSparr0w)
 
 ## License
 
 All assets and code are under the [CC0 LICENSE](LICENSE) and in the public
 domain unless specified otherwise.
-
-The assets in `logo/` are trademarks of their respective companies and are
-under their terms and license.
 
 ## Community
 

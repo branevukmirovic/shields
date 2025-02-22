@@ -34,15 +34,22 @@ t.create('recent downloads (null)')
   .get('/dr/libc.json')
   .intercept(nock =>
     nock('https://crates.io')
-      .get('/api/v1/crates/libc')
+      .get('/api/v1/crates/libc?include=versions,downloads')
       .reply(200, {
         crate: {
           downloads: 42,
           recent_downloads: null,
           max_version: '0.2.71',
         },
-        versions: [{ downloads: 42, license: 'MIT OR Apache-2.0' }],
-      })
+        versions: [
+          {
+            downloads: 42,
+            license: 'MIT OR Apache-2.0',
+            num: '0.2.71',
+            crate_size: 42,
+          },
+        ],
+      }),
   )
   .expectBadge({ label: 'recent downloads', message: '0' })
 
@@ -55,7 +62,7 @@ t.create('recent downloads (with version)')
 
 t.create('downloads (invalid version)')
   .get('/d/libc/7.json')
-  .expectBadge({ label: 'crates.io', message: 'invalid semver: 7' })
+  .expectBadge({ label: 'crates.io', message: 'not found' })
 
 t.create('downloads (not found)')
   .get('/d/not-a-real-package.json')

@@ -1,37 +1,40 @@
 import Joi from 'joi'
 import { coveragePercentage } from '../color-formatters.js'
-import { BaseJsonService } from '../index.js'
+import { BaseJsonService, pathParam, queryParam } from '../index.js'
 
 const schema = Joi.object({
   covered_percent: Joi.number().min(0).max(100).required(),
 }).required()
 
+const queryParamSchema = Joi.object({
+  branch: Joi.string(),
+}).required()
+
 export default class Coveralls extends BaseJsonService {
   static category = 'coverage'
   static route = {
-    base: 'coveralls',
-    pattern: ':vcsType(github|bitbucket)/:user/:repo/:branch*',
+    base: 'coverallsCoverage',
+    pattern: ':vcsType(github|bitbucket|gitlab)/:user/:repo+',
+    queryParamSchema,
   }
 
-  static examples = [
-    {
-      title: 'Coveralls',
-      namedParams: { vcsType: 'github', user: 'jekyll', repo: 'jekyll' },
-      pattern: ':vcsType(github|bitbucket)/:user/:repo',
-      staticPreview: this.render({ coverage: 86 }),
-    },
-    {
-      title: 'Coveralls branch',
-      namedParams: {
-        vcsType: 'bitbucket',
-        user: 'pyKLIP',
-        repo: 'pyklip',
-        branch: 'master',
+  static openApi = {
+    '/coverallsCoverage/{vcsType}/{user}/{repo}': {
+      get: {
+        summary: 'Coveralls',
+        parameters: [
+          pathParam({
+            name: 'vcsType',
+            example: 'github',
+            schema: { type: 'string', enum: this.getEnum('vcsType') },
+          }),
+          pathParam({ name: 'user', example: 'jekyll' }),
+          pathParam({ name: 'repo', example: 'jekyll' }),
+          queryParam({ name: 'branch', example: 'master' }),
+        ],
       },
-      pattern: ':vcsType(github|bitbucket)/:user/:repo/:branch',
-      staticPreview: this.render({ coverage: 96 }),
     },
-  ]
+  }
 
   static defaultBadgeData = { label: 'coverage' }
 
@@ -63,13 +66,13 @@ export default class Coveralls extends BaseJsonService {
       schema,
       url,
       options,
-      errorMessages: {
+      httpErrors: {
         404: 'repository not found',
       },
     })
   }
 
-  async handle({ vcsType, user, repo, branch }) {
+  async handle({ vcsType, user, repo }, { branch }) {
     const json = await this.fetch({ vcsType, user, repo, branch })
     return this.constructor.render({ coverage: json.covered_percent })
   }

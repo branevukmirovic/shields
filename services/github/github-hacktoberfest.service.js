@@ -1,6 +1,8 @@
 import gql from 'graphql-tag'
 import Joi from 'joi'
 import dayjs from 'dayjs'
+import { pathParam, queryParam } from '../index.js'
+import { parseDate } from '../date.js'
 import { metric, maybePluralize } from '../text-formatters.js'
 import { nonNegativeInteger } from '../validators.js'
 import { GithubAuthV4Service } from './github-auth-service.js'
@@ -9,34 +11,25 @@ import {
   transformErrors,
 } from './github-helpers.js'
 
-const documentation = `
-  <p>
-    This badge is designed for projects hosted on GitHub which are
-    participating in
-    <a href="https://hacktoberfest.digitalocean.com">Hacktoberfest</a>,
-    an initiative to encourage participating in open-source projects. The
-    badge can be added to the project readme to encourage potential
-    contributors to review the suggested issues and to celebrate the
-    contributions that have already been made.
+const description = `
+This badge is designed for projects hosted on GitHub which are
+participating in
+[Hacktoberfest](https://hacktoberfest.digitalocean.com),
+an initiative to encourage participating in open-source projects. The
+badge can be added to the project readme to encourage potential
+contributors to review the suggested issues and to celebrate the
+contributions that have already been made.
+The badge displays three pieces of information:
 
-    The badge displays three pieces of information:
-    <ul>
-      <li>
-        The number of suggested issues. By default this will count open
-        issues with the <strong>hacktoberfest</strong> label, however you
-        can pick a different label (e.g.
-        <code>?suggestion_label=good%20first%20issue</code>).
-      </li>
-      <li>
-        The number of pull requests opened in October. This excludes any
-        PR with the <strong>invalid</strong> label.
-      </li>
-      <li>The number of days left of October.</li>
-    </ul>
+- The number of suggested issues. By default this will count open
+  issues with the <strong>hacktoberfest</strong> label, however you
+  can pick a different label (e.g.
+  \`?suggestion_label=good%20first%20issue\`).
+- The number of pull requests opened in October. This excludes any
+  PR with the <strong>invalid</strong> label.
+- The number of days left of October.
 
-  </p>
-
-  ${githubDocumentation}
+${githubDocumentation}
 `
 
 const schema = Joi.object({
@@ -60,44 +53,28 @@ export default class GithubHacktoberfestCombinedStatus extends GithubAuthV4Servi
   static category = 'issue-tracking'
   static route = {
     base: 'github/hacktoberfest',
-    pattern: ':year(2019|2020|2021)/:user/:repo',
+    pattern: ':year(2019|2020|2021|2022|2023|2024)/:user/:repo',
     queryParamSchema,
   }
 
-  static examples = [
-    {
-      title: 'GitHub Hacktoberfest combined status',
-      namedParams: {
-        year: '2021',
-        user: 'snyk',
-        repo: 'snyk',
+  static openApi = {
+    '/github/hacktoberfest/{year}/{user}/{repo}': {
+      get: {
+        summary: 'GitHub Hacktoberfest combined status',
+        description,
+        parameters: [
+          pathParam({
+            name: 'year',
+            example: '2024',
+            schema: { type: 'string', enum: this.getEnum('year') },
+          }),
+          pathParam({ name: 'user', example: 'tmrowco' }),
+          pathParam({ name: 'repo', example: 'tmrowapp-contrib' }),
+          queryParam({ name: 'suggestion_label', example: 'help wanted' }),
+        ],
       },
-      staticPreview: this.render({
-        suggestedIssueCount: 12,
-        contributionCount: 8,
-        daysLeft: 15,
-      }),
-      documentation,
     },
-    {
-      title: 'GitHub Hacktoberfest combined status (suggestion label override)',
-      namedParams: {
-        year: '2021',
-        user: 'tmrowco',
-        repo: 'tmrowapp-contrib',
-      },
-      queryParams: {
-        suggestion_label: 'help wanted',
-      },
-      staticPreview: this.render({
-        year: '2021',
-        suggestedIssueCount: 12,
-        contributionCount: 8,
-        daysLeft: 15,
-      }),
-      documentation,
-    },
-  ]
+  }
 
   static defaultBadgeData = { label: 'hacktoberfest', color: 'orange' }
 
@@ -113,7 +90,7 @@ export default class GithubHacktoberfestCombinedStatus extends GithubAuthV4Servi
       return {
         message: `${daysToStart} ${maybePluralize(
           'day',
-          daysToStart
+          daysToStart,
         )} till kickoff!`,
       }
     }
@@ -121,13 +98,13 @@ export default class GithubHacktoberfestCombinedStatus extends GithubAuthV4Servi
       // The global cutoff time is 11/1 noon UTC.
       // https://github.com/badges/shields/pull/4109#discussion_r330782093
       // We want to show "1 day left" on the last day so we add 1.
-      daysLeft = dayjs(`${year}-11-01 12:00:00 Z`).diff(dayjs(), 'days') + 1
+      daysLeft = parseDate(`${year}-11-01 12:00:00 Z`).diff(dayjs(), 'days') + 1
     }
     if (daysLeft < 0) {
       return {
         message: `is over! (${metric(contributionCount)} ${maybePluralize(
           'PR',
-          contributionCount
+          contributionCount,
         )} opened)`,
       }
     }
@@ -136,13 +113,13 @@ export default class GithubHacktoberfestCombinedStatus extends GithubAuthV4Servi
         suggestedIssueCount
           ? `${metric(suggestedIssueCount)} ${maybePluralize(
               'open issue',
-              suggestedIssueCount
+              suggestedIssueCount,
             )}`
           : '',
         contributionCount
           ? `${metric(contributionCount)} ${maybePluralize(
               'PR',
-              contributionCount
+              contributionCount,
             )}`
           : '',
         daysLeft > 0
@@ -160,7 +137,7 @@ export default class GithubHacktoberfestCombinedStatus extends GithubAuthV4Servi
       `repo:${user}/${repo}`,
       'is:pr',
       `created:${year}-10-01..${year}-10-31`,
-      `-label:invalid`,
+      '-label:invalid',
     ]
       .filter(Boolean)
       .join(' ')
@@ -205,15 +182,17 @@ export default class GithubHacktoberfestCombinedStatus extends GithubAuthV4Servi
   }
 
   static getCalendarPosition(year) {
-    const daysToStart = dayjs(`${year}-10-01 00:00:00 Z`).diff(dayjs(), 'days')
+    const daysToStart = parseDate(`${year}-10-01 00:00:00 Z`).diff(
+      dayjs(),
+      'days',
+    )
     const isBefore = daysToStart > 0
     return { daysToStart, isBefore }
   }
 
   async handle({ user, repo, year }, { suggestion_label: suggestionLabel }) {
-    const { isBefore, daysToStart } = this.constructor.getCalendarPosition(
-      +year
-    )
+    const { isBefore, daysToStart } =
+      this.constructor.getCalendarPosition(+year)
     if (isBefore) {
       return this.constructor.render({ hasStarted: false, daysToStart, year })
     }

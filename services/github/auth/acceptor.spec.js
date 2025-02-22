@@ -63,7 +63,7 @@ describe('Github token acceptor', function () {
       it('should return an error', async function () {
         const res = await got(`${baseUrl}/github-auth/done`)
         expect(res.body).to.equal(
-          'GitHub OAuth authentication failed to provide a code.'
+          'GitHub OAuth authentication failed to provide a code.',
         )
       })
     })
@@ -114,10 +114,11 @@ describe('Github token acceptor', function () {
         const res = await got.post(`${baseUrl}/github-auth/done`, {
           body: form,
         })
-        expect(res.body).to.startWith(
-          '<p>Shields.io has received your app-specific GitHub user token.'
-        )
-
+        expect(
+          res.body.startsWith(
+            '<p>Shields.io has received your app-specific GitHub user token.',
+          ),
+        ).to.be.true
         expect(onTokenAccepted).to.have.been.calledWith(fakeAccessToken)
       })
     })

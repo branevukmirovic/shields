@@ -1,6 +1,6 @@
 import zlib from 'zlib'
 import { expect } from 'chai'
-import { getShieldsIcon } from '../../lib/logos.js'
+import { getSimpleIcon } from '../../lib/logos.js'
 import { createServiceTester } from '../tester.js'
 export const t = await createServiceTester()
 
@@ -11,7 +11,7 @@ t.create('Valid schema')
       schemaVersion: 1,
       label: '',
       message: 'yo',
-    })
+    }),
   )
   .expectBadge({ label: '', message: 'yo' })
 
@@ -24,7 +24,7 @@ t.create('color and labelColor')
       message: 'yo',
       color: '#f0dcc3',
       labelColor: '#e6e6fa',
-    })
+    }),
   )
   .expectBadge({
     label: 'hey',
@@ -41,7 +41,7 @@ t.create('style')
       label: 'hey',
       message: 'yo',
       color: '#99c',
-    })
+    }),
   )
   .expectBadge({
     label: 'hey',
@@ -59,11 +59,11 @@ t.create('named logo')
       label: 'hey',
       message: 'yo',
       namedLogo: 'npm',
-    })
+    }),
   )
   .after((err, res, body) => {
     expect(err).not.to.be.ok
-    expect(body).to.include(getShieldsIcon({ name: 'npm' }))
+    expect(body).to.include(getSimpleIcon({ name: 'npm' }))
   })
 
 t.create('named logo with color')
@@ -73,18 +73,34 @@ t.create('named logo with color')
       schemaVersion: 1,
       label: 'hey',
       message: 'yo',
-      namedLogo: 'npm',
+      namedLogo: 'github',
       logoColor: 'blue',
-    })
+    }),
   )
   .after((err, res, body) => {
     expect(err).not.to.be.ok
-    expect(body).to.include(getShieldsIcon({ name: 'npm', color: 'blue' }))
+    expect(body).to.include(getSimpleIcon({ name: 'github', color: 'blue' }))
+  })
+
+t.create('named logo with size')
+  .get('.svg?url=https://example.com/badge')
+  .intercept(nock =>
+    nock('https://example.com/').get('/badge').reply(200, {
+      schemaVersion: 1,
+      label: 'hey',
+      message: 'yo',
+      namedLogo: 'github',
+      logoSize: 'auto',
+    }),
+  )
+  .after((err, res, body) => {
+    expect(err).not.to.be.ok
+    expect(body).to.include(getSimpleIcon({ name: 'github', size: 'auto' }))
   })
 
 const logoSvg = Buffer.from(
-  getShieldsIcon({ name: 'npm' }).replace('data:image/svg+xml;base64,', ''),
-  'base64'
+  getSimpleIcon({ name: 'npm' }).replace('data:image/svg+xml;base64,', ''),
+  'base64',
 ).toString('ascii')
 
 t.create('custom svg logo')
@@ -95,11 +111,11 @@ t.create('custom svg logo')
       label: 'hey',
       message: 'yo',
       logoSvg,
-    })
+    }),
   )
   .after((err, res, body) => {
     expect(err).not.to.be.ok
-    expect(body).to.include(getShieldsIcon({ name: 'npm' }))
+    expect(body).to.include(getSimpleIcon({ name: 'npm' }))
   })
 
 t.create('logoWidth')
@@ -111,7 +127,7 @@ t.create('logoWidth')
       message: 'yo',
       logoSvg,
       logoWidth: 30,
-    })
+    }),
   )
   .expectBadge({
     label: 'hey',
@@ -119,12 +135,30 @@ t.create('logoWidth')
     logoWidth: 30,
   })
 
+// The logoPosition param was removed, but passing it should not
+// throw a validation error. It should just do nothing.
+t.create('logoPosition')
+  .get('.json?url=https://example.com/badge')
+  .intercept(nock =>
+    nock('https://example.com/').get('/badge').reply(200, {
+      schemaVersion: 1,
+      label: 'hey',
+      message: 'yo',
+      logoSvg,
+      logoPosition: 30,
+    }),
+  )
+  .expectBadge({
+    label: 'hey',
+    message: 'yo',
+  })
+
 t.create('Invalid schema')
   .get('.json?url=https://example.com/badge')
   .intercept(nock =>
     nock('https://example.com/').get('/badge').reply(200, {
       schemaVersion: -1,
-    })
+    }),
   )
   .expectBadge({
     label: 'custom badge',
@@ -140,7 +174,7 @@ t.create('Invalid schema')
       message: 'yo',
       extra: 'keys',
       bogus: true,
-    })
+    }),
   )
   .expectBadge({
     label: 'custom badge',
@@ -155,7 +189,7 @@ t.create('User color overrides success color')
       label: '',
       message: 'yo',
       color: 'blue',
-    })
+    }),
   )
   .expectBadge({ label: '', message: 'yo', color: '#101010' })
 
@@ -167,7 +201,7 @@ t.create('User legacy color overrides success color')
       label: '',
       message: 'yo',
       color: 'blue',
-    })
+    }),
   )
   .expectBadge({ label: '', message: 'yo', color: '#101010' })
 
@@ -180,7 +214,7 @@ t.create('User color does not override error color')
       label: 'something is',
       message: 'not right',
       color: 'red',
-    })
+    }),
   )
   .expectBadge({ label: 'something is', message: 'not right', color: 'red' })
 
@@ -193,7 +227,7 @@ t.create('User legacy color does not override error color')
       label: 'something is',
       message: 'not right',
       color: 'red',
-    })
+    }),
   )
   .expectBadge({ label: 'something is', message: 'not right', color: 'red' })
 
@@ -205,7 +239,7 @@ t.create('cacheSeconds')
       label: '',
       message: 'yo',
       cacheSeconds: 500,
-    })
+    }),
   )
   .expectHeader('cache-control', 'max-age=500, s-maxage=500')
 
@@ -217,7 +251,7 @@ t.create('user can override service cacheSeconds')
       label: '',
       message: 'yo',
       cacheSeconds: 500,
-    })
+    }),
   )
   .expectHeader('cache-control', 'max-age=1000, s-maxage=1000')
 
@@ -229,7 +263,7 @@ t.create('user does not override longer service cacheSeconds')
       label: '',
       message: 'yo',
       cacheSeconds: 500,
-    })
+    }),
   )
   .expectHeader('cache-control', 'max-age=500, s-maxage=500')
 
@@ -241,7 +275,7 @@ t.create('cacheSeconds does not override longer Shields default')
       label: '',
       message: 'yo',
       cacheSeconds: 10,
-    })
+    }),
   )
   .expectHeader('cache-control', 'max-age=300, s-maxage=300')
 
@@ -275,9 +309,9 @@ t.create('gzipped endpoint')
       .reply(
         200,
         zlib.gzipSync(
-          JSON.stringify({ schemaVersion: 1, label: '', message: 'yo' })
+          JSON.stringify({ schemaVersion: 1, label: '', message: 'yo' }),
         ),
-        { 'Content-Encoding': 'gzip' }
-      )
+        { 'Content-Encoding': 'gzip' },
+      ),
   )
   .expectBadge({ label: '', message: 'yo' })

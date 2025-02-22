@@ -1,5 +1,5 @@
-import { formatDate } from '../text-formatters.js'
-import { age as ageColor } from '../color-formatters.js'
+import { pathParams } from '../index.js'
+import { renderDateBadge } from '../date.js'
 import { BaseVaadinDirectoryService } from './vaadin-directory-base.js'
 
 export default class VaadinDirectoryReleaseDate extends BaseVaadinDirectoryService {
@@ -10,28 +10,24 @@ export default class VaadinDirectoryReleaseDate extends BaseVaadinDirectoryServi
     pattern: ':alias(rd|release-date)/:packageName',
   }
 
-  static examples = [
-    {
-      title: 'Vaadin Directory',
-      pattern: 'release-date/:packageName',
-      namedParams: { packageName: 'vaadinvaadin-grid' },
-      staticPreview: this.render({ date: '2018-12-12' }),
-      keywords: ['vaadin-directory', 'date', 'latest release date'],
+  static openApi = {
+    '/vaadin-directory/release-date/{packageName}': {
+      get: {
+        summary: 'Vaadin Directory Release Date',
+        parameters: pathParams({
+          name: 'packageName',
+          example: 'vaadinvaadin-grid',
+        }),
+      },
     },
-  ]
+  }
 
   static defaultBadgeData = {
     label: 'latest release date',
   }
 
-  static render({ date }) {
-    return { message: formatDate(date), color: ageColor(date) }
-  }
-
   async handle({ alias, packageName }) {
     const data = await this.fetch({ packageName })
-    return this.constructor.render({
-      date: data.latestAvailableRelease.publicationDate,
-    })
+    return renderDateBadge(data.latestAvailableRelease.publicationDate)
   }
 }

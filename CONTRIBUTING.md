@@ -8,10 +8,7 @@ financial contributions, issues, and pull requests!
 ### Financial contributions
 
 We welcome financial contributions in full transparency on our
-[open collective](https://opencollective.com/shields). Anyone can file an
-expense. If the expense makes sense for the development of the community, it
-will be "merged" into the ledger of our open collective by the core
-contributors and the person who filed the expense will be reimbursed.
+[open collective](https://opencollective.com/shields).
 
 ### Contributing code
 
@@ -77,11 +74,20 @@ don't see it, feel free to [open a new issue][open an issue].
 
 [open an issue]: https://github.com/badges/shields/issues/new/choose
 
+### Requesting new logos
+
+We consume logos via [the SimpleIcons project][simple-icons github], and
+encourage you to contribute logos there. Please review their
+[guidance][simple-icons contributing] before doing so.
+
+[simple-icons github]: https://github.com/simple-icons/simple-icons
+[simple-icons contributing]: https://github.com/simple-icons/simple-icons/blob/develop/CONTRIBUTING.md
+
 ### Spreading the word
 
 Feel free to star the repository. This will help increase the visibility of the project, therefore attracting more users and contributors to Shields!
 
-We're also asking for [one-time \$10 donations](https://opencollective.com/shields) from developers who use and love Shields, please spread the word!
+We're also asking for [donations](https://opencollective.com/shields) from developers who use and love Shields, please spread the word!
 
 ## Getting help
 
@@ -134,19 +140,25 @@ Prettier before a commit by default.
 When adding or changing a service [please write tests][service-tests], and ensure the [title of your Pull Requests follows the required conventions](#running-service-tests-in-pull-requests) to ensure your tests are executed.
 When changing other code, please add unit tests.
 
-To run the integration tests, you must have redis installed and in your PATH.
-Use `brew install redis`, `yum install redis`, etc. The test runner will
-start the server automatically.
+The integration tests are not run by default. For most contributions it is OK to skip these unless you're working directly on the code for storing the GitHub token pool in postgres.
+
+To run the integration tests:
+
+- You must have PostgreSQL installed. Use `brew install postgresql`, `apt-get install postgresql`, etc.
+- Set a connection string either with an env var `POSTGRES_URL=postgresql://user:pass@127.0.0.1:5432/db_name` or by using
+  ```yaml
+  private:
+    postgres_url: 'postgresql://user:pass@127.0.0.1:5432/db_name'
+  ```
+  in a yaml config file.
+- Run `npm run migrate up` to apply DB migrations
+- Run `npm run test:integration` to run the tests
 
 [service-tests]: https://github.com/badges/shields/blob/master/doc/service-tests.md
 
 ### Code organization
 
 There is a [High-level code walkthrough](doc/code-walkthrough.md) describing the layout of the project.
-
-### Logos
-
-We have [documentation for logo usage](doc/logos.md) which includes [contribution guidance](doc/logos.md#contributing-logos)
 
 ## Pull Requests
 

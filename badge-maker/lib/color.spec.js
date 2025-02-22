@@ -27,6 +27,8 @@ test(normalizeColor, () => {
   given('blue').expect('blue')
   given('4c1').expect('#4c1')
   given('f00f00').expect('#f00f00')
+  given('111111').expect('#111111')
+  given(111111).expect('#111111')
   given('ABC123').expect('#abc123')
   given('#ccc').expect('#ccc')
   given('#fffe').expect('#fffe')
@@ -75,7 +77,7 @@ test(toSvgColor, () => {
   given('papayawhip').expect('papayawhip')
   given('purple').expect('purple')
   forCases([given(''), given(undefined), given('not-a-color')]).expect(
-    undefined
+    undefined,
   )
   given('lightgray').expect('#9f9f9f')
   given('informational').expect('#007ec6')

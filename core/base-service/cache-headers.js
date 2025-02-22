@@ -39,14 +39,14 @@ function coalesceCacheLength({
   assert(defaultCacheLengthSeconds !== undefined)
 
   const cacheLength = coalesce(
+    serviceOverrideCacheLengthSeconds,
     serviceDefaultCacheLengthSeconds,
-    defaultCacheLengthSeconds
+    defaultCacheLengthSeconds,
   )
 
   // Overrides can apply _more_ caching, but not less. Query param overriding
   // can request more overriding than service override, but not less.
   const candidateOverrides = [
-    serviceOverrideCacheLengthSeconds,
     overrideCacheLengthFromQueryParams(queryParams),
   ].filter(x => x !== undefined)
 
@@ -90,8 +90,11 @@ function setCacheHeaders({
   setHeadersForCacheLength(res, cacheLengthSeconds)
 }
 
-const staticCacheControlHeader = `max-age=${24 * 3600}, s-maxage=${24 * 3600}` // 1 day.
-function setCacheHeadersForStaticResource(res) {
+function setCacheHeadersForStaticResource(
+  res,
+  maxAge = 24 * 3600, // 1 day
+) {
+  const staticCacheControlHeader = `max-age=${maxAge}, s-maxage=${maxAge}`
   res.setHeader('Cache-Control', staticCacheControlHeader)
   res.setHeader('Last-Modified', serverStartTimeGMTString)
 }

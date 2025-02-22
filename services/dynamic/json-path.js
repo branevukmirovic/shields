@@ -3,8 +3,8 @@
  */
 
 import Joi from 'joi'
-import jp from 'jsonpath'
-import { renderDynamicBadge, errorMessages } from '../dynamic-common.js'
+import { JSONPath as jp } from 'jsonpath-plus'
+import { renderDynamicBadge, httpErrors } from '../dynamic-common.js'
 import { InvalidParameter, InvalidResponse } from '../index.js'
 
 /**
@@ -24,15 +24,15 @@ export default superclass =>
      * @param {object} attrs Refer to individual attrs
      * @param {Joi} attrs.schema Joi schema to validate the response transformed to JSON
      * @param {string} attrs.url URL to request
-     * @param {object} [attrs.errorMessages={}] Key-value map of status codes
+     * @param {object} [attrs.httpErrors={}] Key-value map of status codes
      *    and custom error messages e.g: `{ 404: 'package not found' }`.
      *    This can be used to extend or override the
      *    [default](https://github.com/badges/shields/blob/master/services/dynamic-common.js#L8)
      * @returns {object} Parsed response
      */
-    async fetch({ schema, url, errorMessages }) {
+    async fetch({ schema, url, httpErrors }) {
       throw new Error(
-        `fetch() function not implemented for ${this.constructor.name}`
+        `fetch() function not implemented for ${this.constructor.name}`,
       )
     }
 
@@ -40,36 +40,27 @@ export default superclass =>
       const data = await this.fetch({
         schema: Joi.any(),
         url,
-        errorMessages,
+        httpErrors,
       })
-
-      // JSONPath only works on objects and arrays.
-      // https://github.com/badges/shields/issues/4018
-      if (typeof data !== 'object') {
-        throw new InvalidResponse({
-          prettyMessage: 'resource must contain an object or array',
-        })
-      }
 
       let values
       try {
-        values = jp.query(data, pathExpression)
+        values = jp({ json: data, path: pathExpression, eval: false })
       } catch (e) {
         const { message } = e
         if (
-          message.startsWith('Lexical error') ||
-          message.startsWith('Parse error') ||
-          message.includes('Unexpected token')
+          message.includes('prevented in JSONPath expression') ||
+          e instanceof TypeError
         ) {
           throw new InvalidParameter({
-            prettyMessage: 'unparseable jsonpath query',
+            prettyMessage: 'query not supported',
           })
         } else {
           throw e
         }
       }
 
-      if (!values.length) {
+      if (!values || !values.length) {
         throw new InvalidResponse({ prettyMessage: 'no result' })
       }
 

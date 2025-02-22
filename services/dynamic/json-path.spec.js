@@ -1,8 +1,7 @@
-import chai from 'chai'
+import { expect, use } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import jsonPath from './json-path.js'
-const { expect } = chai
-chai.use(chaiAsPromised)
+use(chaiAsPromised)
 
 describe('JSON Path service factory', function () {
   describe('fetch()', function () {
@@ -13,7 +12,7 @@ describe('JSON Path service factory', function () {
 
       return expect(jsonPathServiceInstance.fetch({})).to.be.rejectedWith(
         Error,
-        'fetch() function not implemented for JsonPathService'
+        'fetch() function not implemented for JsonPathService',
       )
     })
   })

@@ -1,26 +1,26 @@
 import Joi from 'joi'
 import { renderDownloadsBadge } from '../downloads.js'
-import { BaseJsonService, NotFound } from '../index.js'
+import { BaseJsonService, NotFound, pathParams } from '../index.js'
 
-const documentation = `
-  <p>
-    The name of an extension is case-sensitive excluding the first character.
-  </p>
-  <p>
-    For example, in the case of <code>ParserFunctions</code>, the following are
-    valid:
-    <ul>
-      <li><code>ParserFunctions</code></li>
-      <li><code>parserFunctions</code></li>
-    </ul>
+const description = `
+<a href="https://wikiapiary.com">WikiApiary</a> holds information about MediaWiki websites.
 
-    However, the following are invalid:
-    <ul>
-      <li><code>parserfunctions</code></li>
-      <li><code>Parserfunctions</code></li>
-      <li><code>pARSERfUNCTIONS</code></li>
-    </ul>
-  </p>
+The name of an extension is case-sensitive excluding the first character.
+
+For example, in the case of <code>ParserFunctions</code>, the following are valid:
+
+<ul>
+  <li><code>ParserFunctions</code></li>
+  <li><code>parserFunctions</code></li>
+</ul>
+
+However, the following are invalid:
+
+<ul>
+  <li><code>parserfunctions</code></li>
+  <li><code>Parserfunctions</code></li>
+  <li><code>pARSERfUNCTIONS</code></li>
+</ul>
 `
 
 const schema = Joi.object({
@@ -53,15 +53,22 @@ export default class WikiapiaryInstalls extends BaseJsonService {
     pattern: ':variant(extension|skin|farm|generator|host)/installs/:name',
   }
 
-  static examples = [
-    {
-      title: 'Wikiapiary installs',
-      namedParams: { variant: 'extension', name: 'ParserFunctions' },
-      staticPreview: this.render({ usage: 11170 }),
-      documentation,
-      keywords: ['mediawiki'],
+  static openApi = {
+    '/wikiapiary/{variant}/installs/{name}': {
+      get: {
+        summary: 'Wikiapiary installs',
+        description,
+        parameters: pathParams(
+          {
+            name: 'variant',
+            example: 'extension',
+            schema: { type: 'string', enum: this.getEnum('variant') },
+          },
+          { name: 'name', example: 'ParserFunctions' },
+        ),
+      },
     },
-  ]
+  }
 
   static defaultBadgeData = { label: 'installs', color: 'informational' }
 
@@ -75,7 +82,7 @@ export default class WikiapiaryInstalls extends BaseJsonService {
   async fetch({ variant, name }) {
     return this._requestJson({
       schema,
-      url: `https://wikiapiary.com/w/api.php`,
+      url: 'https://wikiapiary.com/w/api.php',
       options: {
         searchParams: {
           action: 'ask',
@@ -92,7 +99,7 @@ export default class WikiapiaryInstalls extends BaseJsonService {
     }
     const keyLowerCase = `${variant}:${name.toLowerCase()}`
     const resultKey = Object.keys(results).find(
-      key => keyLowerCase === key.toLowerCase()
+      key => keyLowerCase === key.toLowerCase(),
     )
 
     if (resultKey === undefined)

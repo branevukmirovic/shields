@@ -1,6 +1,6 @@
-import { addv } from '../text-formatters.js'
-import { version as versionColor } from '../color-formatters.js'
-import { documentation, BaseWordpress } from './wordpress-base.js'
+import { pathParams } from '../index.js'
+import { renderVersionBadge } from '../version.js'
+import { description, BaseWordpress } from './wordpress-base.js'
 
 function VersionForExtensionType(extensionType) {
   const { capt, exampleSlug } = {
@@ -24,30 +24,30 @@ function VersionForExtensionType(extensionType) {
       pattern: ':slug',
     }
 
-    static examples = [
-      {
-        title: `WordPress ${capt} Version`,
-        namedParams: { slug: exampleSlug },
-        staticPreview: this.render({ version: 2.5 }),
-        documentation,
-      },
-    ]
+    static get openApi() {
+      const key = `/wordpress/${extensionType}/v/{slug}`
+      const route = {}
+      route[key] = {
+        get: {
+          summary: `WordPress ${capt} Version`,
+          description,
+          parameters: pathParams({
+            name: 'slug',
+            example: exampleSlug,
+          }),
+        },
+      }
+      return route
+    }
 
     static defaultBadgeData = { label: extensionType }
-
-    static render({ version }) {
-      return {
-        message: addv(version),
-        color: versionColor(version),
-      }
-    }
 
     async handle({ slug }) {
       const { version } = await this.fetch({
         extensionType,
         slug,
       })
-      return this.constructor.render({ version })
+      return renderVersionBadge({ version })
     }
   }
 }

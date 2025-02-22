@@ -6,41 +6,41 @@ export const t = await createServiceTester()
 // Examples for this service can be found through the explore page:
 // https://codeclimate.com/explore
 
-t.create('issues count').get('/issues/angular/angular.json').expectBadge({
+t.create('issues count').get('/issues/tensorflow/models.json').expectBadge({
   label: 'issues',
   message: Joi.number().integer().positive(),
 })
 
 t.create('technical debt percentage')
-  .get('/tech-debt/angular/angular.json')
+  .get('/tech-debt/tensorflow/models.json')
   .expectBadge({
     label: 'technical debt',
     message: isIntegerPercentage,
   })
 
 t.create('maintainability percentage')
-  .get('/maintainability-percentage/angular/angular.json')
+  .get('/maintainability-percentage/tensorflow/models.json')
   .expectBadge({
     label: 'maintainability',
     message: isIntegerPercentage,
   })
 
 t.create('maintainability letter')
-  .get('/maintainability/angular/angular.json')
+  .get('/maintainability/tensorflow/models.json')
   .expectBadge({
     label: 'maintainability',
     message: Joi.equal('A', 'B', 'C', 'D', 'E', 'F'),
   })
 
 t.create('issues when outer user repos query returns multiple items')
-  .get('/issues/angular/angular.json')
+  .get('/issues/tensorflow/models.json')
   .intercept(nock =>
-    nock('https://api.codeclimate.com', { allowUnmocked: true })
-      .get('/v1/repos?github_slug=angular%2Fangular')
+    nock('https://api.codeclimate.com')
+      .get('/v1/repos?github_slug=tensorflow%2Fmodels')
       .reply(200, {
         data: [
           {
-            id: '54fd4e6b6956804a10003df4',
+            id: 'xxxxxxxxxxxx', // Expected to be ignored in favour of the one that does contain snapshot data.
             relationships: {
               latest_default_branch_snapshot: {
                 data: null,
@@ -51,11 +51,11 @@ t.create('issues when outer user repos query returns multiple items')
             },
           },
           {
-            id: '54fd4e6b6956804a10003df3',
+            id: '57e2efacc718d40058000c9b',
             relationships: {
               latest_default_branch_snapshot: {
                 data: {
-                  id: '620e2b491b6a72000100ca1d',
+                  id: '65ae115f34117d0001055101',
                   type: 'snapshots',
                 },
               },
@@ -66,11 +66,30 @@ t.create('issues when outer user repos query returns multiple items')
           },
         ],
       })
+      .get(
+        '/v1/repos/57e2efacc718d40058000c9b/snapshots/65ae115f34117d0001055101',
+      )
+      .reply(200, {
+        data: {
+          attributes: {
+            ratings: [
+              {
+                letter: 'D',
+                measure: {
+                  value: 24.73668395092537,
+                },
+              },
+            ],
+          },
+          meta: {
+            issues_count: 11538,
+          },
+        },
+      }),
   )
-  .networkOn() // Combined with allowUnmocked: true, this allows the inner snapshots query to go through.
   .expectBadge({
     label: 'issues',
-    message: Joi.number().integer().positive(),
+    message: '11538',
   })
 
 t.create('maintainability letter for non-existent repo')
@@ -88,13 +107,13 @@ t.create('maintainability letter for repo without snapshots')
   })
 
 t.create('malformed response for outer user repos query')
-  .get('/maintainability/angular/angular.json')
+  .get('/maintainability/tensorflow/models.json')
   .intercept(nock =>
     nock('https://api.codeclimate.com')
-      .get('/v1/repos?github_slug=angular%2Fangular')
+      .get('/v1/repos?github_slug=tensorflow%2Fmodels')
       .reply(200, {
         data: [{}], // No relationships in the list of data elements.
-      })
+      }),
   )
   .expectBadge({
     label: 'analysis',
@@ -102,11 +121,11 @@ t.create('malformed response for outer user repos query')
   })
 
 t.create('malformed response for inner specific repo query')
-  .get('/maintainability/angular/angular.json')
+  .get('/maintainability/tensorflow/models.json')
   .intercept(nock =>
     nock('https://api.codeclimate.com', { allowUnmocked: true })
       .get(/\/v1\/repos\/[a-z0-9]+\/snapshots\/[a-z0-9]+/)
-      .reply(200, {})
+      .reply(200, {}),
   ) // No data.
   .networkOn() // Combined with allowUnmocked: true, this allows the outer user repos query to go through.
   .expectBadge({

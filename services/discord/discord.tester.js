@@ -1,12 +1,13 @@
-import Joi from 'joi'
 import { createServiceTester } from '../tester.js'
+import { isMetricWithPattern } from '../test-validators.js'
+
 export const t = await createServiceTester()
 
-t.create('gets status for Reactiflux')
-  .get('/102860784329052160.json')
+t.create('gets status for shields')
+  .get('/308323056592486420.json')
   .expectBadge({
     label: 'chat',
-    message: Joi.string().regex(/^[0-9]+ online$/),
+    message: isMetricWithPattern(/ online/),
     color: 'brightgreen',
   })
 
@@ -22,7 +23,7 @@ t.create('widget disabled')
       .reply(403, {
         code: 50004,
         message: 'Widget Disabled',
-      })
+      }),
   )
   .expectBadge({ label: 'chat', message: 'widget disabled' })
 
@@ -31,6 +32,6 @@ t.create('server error')
   .intercept(nock =>
     nock('https://discord.com/')
       .get('/api/v6/guilds/12345/widget.json')
-      .reply(500, 'Something broke')
+      .reply(500, 'Something broke'),
   )
   .expectBadge({ label: 'chat', message: 'inaccessible' })

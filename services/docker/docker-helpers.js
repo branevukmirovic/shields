@@ -3,24 +3,27 @@ import Joi from 'joi'
 import { NotFound } from '../index.js'
 const dockerBlue = '066da5'
 
+const archEnum = [
+  'amd64',
+  'arm',
+  'arm64',
+  's390x',
+  '386',
+  'ppc64',
+  'ppc64le',
+  'wasm',
+  'mips',
+  'mipsle',
+  'mips64',
+  'mips64le',
+  'riscv64',
+  'loong64',
+]
+
 // Valid architecture values: https://golang.org/doc/install/source#environment (GOARCH)
 const archSchema = Joi.alternatives(
-  Joi.string().valid(
-    'amd64',
-    'arm',
-    'arm64',
-    's390x',
-    '386',
-    'ppc64',
-    'ppc64le',
-    'wasm',
-    'mips',
-    'mipsle',
-    'mips64',
-    'mips64le',
-    'riscv64'
-  ),
-  Joi.number().valid(386).cast('string')
+  Joi.string().valid(...archEnum),
+  Joi.number().valid(386).cast('string'),
 )
 
 function buildDockerUrl(badgeName, includeTagRoute) {
@@ -56,8 +59,8 @@ async function getMultiPageData({ user, repo, fetch }) {
 
   const pageData = await Promise.all(
     [...Array(numberOfPages - 1).keys()].map((_, i) =>
-      fetch({ user, repo, page: ++i + 1 })
-    )
+      fetch({ user, repo, page: ++i + 1 }),
+    ),
   )
   return [...data.results].concat(...pageData.map(p => p.results))
 }
@@ -76,6 +79,7 @@ function getDigestSemVerMatches({ data, digest }) {
 }
 
 export {
+  archEnum,
   archSchema,
   dockerBlue,
   buildDockerUrl,

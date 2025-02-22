@@ -2,16 +2,9 @@ import { registerCommand } from 'cypress-wait-for-stable-dom'
 
 registerCommand()
 
-describe('Main page', function () {
+describe('Frontend', function () {
   const backendUrl = Cypress.env('backend_url')
-  const SEARCH_INPUT = 'input[placeholder="search / project URL"]'
-
-  function expectBadgeExample(title, previewUrl, pattern) {
-    cy.contains('tr', `${title}:`).find('code').should('have.text', pattern)
-    cy.contains('tr', `${title}:`)
-      .find('img')
-      .should('have.attr', 'src', previewUrl)
-  }
+  const SEARCH_INPUT = 'input[placeholder="Search"]'
 
   function visitAndWait(page) {
     cy.visit(page)
@@ -26,56 +19,37 @@ describe('Main page', function () {
     cy.contains('PyPI - License')
   })
 
-  it('Shows badge from category', function () {
-    visitAndWait('/category/chat')
+  it('Shows badges from category', function () {
+    visitAndWait('/badges')
 
-    expectBadgeExample(
-      'Discourse status',
-      'http://localhost:8080/badge/discourse-online-brightgreen',
-      '/discourse/status?server=https%3A%2F%2Fmeta.discourse.org'
-    )
+    cy.contains('Build')
+    cy.contains('Chat').click()
+
+    cy.contains('Discourse Status')
+    cy.contains('Stack Exchange questions')
   })
 
-  it('Suggest badges', function () {
-    const badgeUrl = `${backendUrl}/github/issues/badges/shields`
-    visitAndWait('/')
+  it('Shows expected code examples', function () {
+    visitAndWait('/badges/static-badge')
 
-    cy.get(SEARCH_INPUT).type('https://github.com/badges/shields')
-    cy.contains('Suggest badges').click()
-
-    expectBadgeExample('GitHub issues', badgeUrl, badgeUrl)
+    cy.contains('button', 'URL').should('have.class', 'api-code-tab')
+    cy.contains('button', 'Markdown').should('have.class', 'api-code-tab')
+    cy.contains('button', 'rSt').should('have.class', 'api-code-tab')
+    cy.contains('button', 'AsciiDoc').should('have.class', 'api-code-tab')
+    cy.contains('button', 'HTML').should('have.class', 'api-code-tab')
   })
 
-  it('Customization form is filled with suggested badge details', function () {
-    const badgeUrl = `${backendUrl}/github/issues/badges/shields`
-    visitAndWait('/')
-    cy.get(SEARCH_INPUT).type('https://github.com/badges/shields')
-    cy.contains('Suggest badges').click()
+  it('Build a badge', function () {
+    visitAndWait('/badges/git-hub-license')
 
-    cy.contains(badgeUrl).click()
+    cy.contains('/github/license/:user/:repo')
 
-    cy.get('input[name="user"]').should('have.value', 'badges')
-    cy.get('input[name="repo"]').should('have.value', 'shields')
-  })
+    cy.get('input[placeholder="user"]').type('badges')
+    cy.get('input[placeholder="repo"]').type('shields')
 
-  it('Customizate suggested badge', function () {
-    const badgeUrl = `${backendUrl}/github/issues/badges/shields`
-    visitAndWait('/')
-    cy.get(SEARCH_INPUT).type('https://github.com/badges/shields')
-    cy.contains('Suggest badges').click()
-    cy.contains(badgeUrl).click()
-
-    cy.get('table input[name="color"]').type('orange')
-
-    cy.get(`img[src='${backendUrl}/github/issues/badges/shields?color=orange']`)
-  })
-
-  it('Do not duplicate example parameters', function () {
-    visitAndWait('/category/funding')
-
-    cy.contains('GitHub Sponsors').click()
-    cy.get('[name="style"]').should($style => {
-      expect($style).to.have.length(1)
-    })
+    cy.intercept('GET', `${backendUrl}/github/license/badges/shields`).as('get')
+    cy.contains('Execute').click()
+    cy.wait('@get').its('response.statusCode').should('eq', 200)
+    cy.get('img[id="badge-preview"]')
   })
 })

@@ -2,7 +2,7 @@ import Joi from 'joi'
 import { AuthHelper } from '../../core/base-service/auth-helper.js'
 import { metric } from '../text-formatters.js'
 import { nonNegativeInteger, optionalUrl } from '../validators.js'
-import { BaseJsonService } from '../index.js'
+import { BaseJsonService, pathParam, queryParam } from '../index.js'
 
 const schema = Joi.object({
   size: nonNegativeInteger,
@@ -12,7 +12,7 @@ const queryParamSchema = Joi.object({
   server: optionalUrl,
 }).required()
 
-const errorMessages = {
+const httpErrors = {
   401: 'invalid credentials',
   403: 'private repo',
   404: 'not found',
@@ -21,35 +21,43 @@ const errorMessages = {
 function pullRequestClassGenerator(raw) {
   const routePrefix = raw ? 'pr-raw' : 'pr'
   const badgeSuffix = raw ? '' : ' open'
+  const titleSuffix = raw ? ' (raw)' : ''
 
   return class BitbucketPullRequest extends BaseJsonService {
     static name = `BitbucketPullRequest${raw ? 'Raw' : ''}`
     static category = 'issue-tracking'
     static route = {
       base: `bitbucket/${routePrefix}`,
-      pattern: `:user/:repo`,
+      pattern: ':user/:repo',
       queryParamSchema,
     }
 
-    static examples = [
-      {
-        title: 'Bitbucket open pull requests',
-        namedParams: {
-          user: 'atlassian',
-          repo: 'python-bitbucket',
+    static get openApi() {
+      const key = `/bitbucket/${routePrefix}/{user}/{repo}`
+      const route = {}
+      route[key] = {
+        get: {
+          summary: `Bitbucket open pull requests ${titleSuffix}`,
+          parameters: [
+            pathParam({
+              name: 'user',
+              example: 'shields-io',
+            }),
+            pathParam({
+              name: 'repo',
+              example: 'test-repo',
+            }),
+            queryParam({
+              name: 'server',
+              example: 'https://bitbucket.mydomain.net',
+              description:
+                'When not specified, this will default to `https://bitbucket.org`.',
+            }),
+          ],
         },
-        staticPreview: this.render({ prs: 22 }),
-      },
-      {
-        title: 'Bitbucket Server open pull requests',
-        namedParams: {
-          user: 'foo',
-          repo: 'bar',
-        },
-        queryParams: { server: 'https://bitbucket.mydomain.net' },
-        staticPreview: this.render({ prs: 42 }),
-      },
-    ]
+      }
+      return route
+    }
 
     static defaultBadgeData = { label: 'pull requests' }
 
@@ -69,7 +77,7 @@ function pullRequestClassGenerator(raw) {
           passKey: 'bitbucket_password',
           authorizedOrigins: ['https://bitbucket.org'],
         },
-        config
+        config,
       )
       this.bitbucketServerAuthHelper = new AuthHelper(
         {
@@ -77,7 +85,7 @@ function pullRequestClassGenerator(raw) {
           passKey: 'bitbucket_server_password',
           serviceKey: 'bitbucketServer',
         },
-        config
+        config,
       )
     }
 
@@ -87,8 +95,8 @@ function pullRequestClassGenerator(raw) {
           url: `https://bitbucket.org/api/2.0/repositories/${user}/${repo}/pullrequests/`,
           schema,
           options: { searchParams: { state: 'OPEN', limit: 0 } },
-          errorMessages,
-        })
+          httpErrors,
+        }),
       )
     }
 
@@ -106,8 +114,8 @@ function pullRequestClassGenerator(raw) {
               withAttributes: false,
             },
           },
-          errorMessages,
-        })
+          httpErrors,
+        }),
       )
     }
 

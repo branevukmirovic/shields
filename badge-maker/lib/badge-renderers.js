@@ -69,7 +69,7 @@ function getLogoElement({ logo, horizPadding, badgeHeight, logoWidth }) {
 
 function renderBadge(
   { links, leftWidth, rightWidth, height, accessibleText },
-  content
+  content,
 ) {
   const width = leftWidth + rightWidth
   const leftLink = links[0]
@@ -128,6 +128,7 @@ class Badge {
     logoPadding,
     color = '#4c1',
     labelColor,
+    idSuffix = '',
   }) {
     const horizPadding = 5
     const hasLogo = !!logo
@@ -159,7 +160,7 @@ class Badge {
     }
     let rightWidth = messageWidth + 2 * horizPadding
     if (hasLogo && !hasLabel) {
-      rightWidth += totalLogoWidth + horizPadding - 1
+      rightWidth += totalLogoWidth + (message.length ? horizPadding - 1 : 0)
     }
 
     const width = leftWidth + rightWidth
@@ -178,6 +179,7 @@ class Badge {
     this.label = label
     this.message = message
     this.accessibleText = accessibleText
+    this.idSuffix = idSuffix
 
     this.logoElement = getLogoElement({
       logo,
@@ -286,7 +288,7 @@ class Badge {
           },
         }),
       ],
-      attrs: { id: 'r' },
+      attrs: { id: `r${this.idSuffix}` },
     })
   }
 
@@ -313,7 +315,7 @@ class Badge {
       attrs: {
         width: this.width,
         height: this.constructor.height,
-        fill: 'url(#s)',
+        fill: `url(#s${this.idSuffix})`,
       },
     })
     const content = withGradient
@@ -379,14 +381,14 @@ class Plastic extends Badge {
           attrs: { offset: 1, 'stop-color': '#000', 'stop-opacity': '.5' },
         }),
       ],
-      attrs: { id: 's', x2: 0, y2: '100%' },
+      attrs: { id: `s${this.idSuffix}`, x2: 0, y2: '100%' },
     })
 
     const clipPath = this.getClipPathElement(4)
 
     const backgroundGroup = this.getBackgroundGroupElement({
       withGradient: true,
-      attrs: { 'clip-path': 'url(#r)' },
+      attrs: { 'clip-path': `url(#r${this.idSuffix})` },
     })
 
     return renderBadge(
@@ -397,7 +399,7 @@ class Plastic extends Badge {
         accessibleText: this.accessibleText,
         height: this.constructor.height,
       },
-      [gradient, clipPath, backgroundGroup, this.foregroundGroupElement]
+      [gradient, clipPath, backgroundGroup, this.foregroundGroupElement],
     )
   }
 }
@@ -428,14 +430,14 @@ class Flat extends Badge {
           attrs: { offset: 1, 'stop-opacity': '.1' },
         }),
       ],
-      attrs: { id: 's', x2: 0, y2: '100%' },
+      attrs: { id: `s${this.idSuffix}`, x2: 0, y2: '100%' },
     })
 
     const clipPath = this.getClipPathElement(3)
 
     const backgroundGroup = this.getBackgroundGroupElement({
       withGradient: true,
-      attrs: { 'clip-path': 'url(#r)' },
+      attrs: { 'clip-path': `url(#r${this.idSuffix})` },
     })
 
     return renderBadge(
@@ -446,7 +448,7 @@ class Flat extends Badge {
         accessibleText: this.accessibleText,
         height: this.constructor.height,
       },
-      [gradient, clipPath, backgroundGroup, this.foregroundGroupElement]
+      [gradient, clipPath, backgroundGroup, this.foregroundGroupElement],
     )
   }
 }
@@ -478,7 +480,7 @@ class FlatSquare extends Badge {
         accessibleText: this.accessibleText,
         height: this.constructor.height,
       },
-      [backgroundGroup, this.foregroundGroupElement]
+      [backgroundGroup, this.foregroundGroupElement],
     )
   }
 }
@@ -492,6 +494,7 @@ function social({
   logoPadding,
   color = '#4c1',
   labelColor = '#555',
+  idSuffix = '',
 }) {
   // Social label is styled with a leading capital. Convert to caps here so
   // width can be measured using the correct characters.
@@ -565,9 +568,9 @@ function social({
     const rect = new XmlElement({
       name: 'rect',
       attrs: {
-        id: 'llink',
+        id: `llink${idSuffix}`,
         stroke: '#d5d5d5',
-        fill: 'url(#a)',
+        fill: `url(#a${idSuffix})`,
         x: '.5',
         y: '.5',
         width: labelRectWidth,
@@ -640,7 +643,7 @@ function social({
       name: 'text',
       content: [message],
       attrs: {
-        id: 'rlink',
+        id: `rlink${idSuffix}`,
         x: messageTextX,
         y: 140,
         transform: FONT_SCALE_DOWN_VALUE,
@@ -660,7 +663,7 @@ function social({
   const style = new XmlElement({
     name: 'style',
     content: [
-      'a:hover #llink{fill:url(#b);stroke:#ccc}a:hover #rlink{fill:#4183c4}',
+      `a:hover #llink${idSuffix}{fill:url(#b${idSuffix});stroke:#ccc}a:hover #rlink${idSuffix}{fill:#4183c4}`,
     ],
   })
   const gradients = new ElementList({
@@ -681,7 +684,7 @@ function social({
             attrs: { offset: 1, 'stop-opacity': '.1' },
           }),
         ],
-        attrs: { id: 'a', x2: 0, y2: '100%' },
+        attrs: { id: `a${idSuffix}`, x2: 0, y2: '100%' },
       }),
       new XmlElement({
         name: 'linearGradient',
@@ -695,7 +698,7 @@ function social({
             attrs: { offset: 1, 'stop-opacity': '.1' },
           }),
         ],
-        attrs: { id: 'b', x2: 0, y2: '100%' },
+        attrs: { id: `b${idSuffix}`, x2: 0, y2: '100%' },
       }),
     ],
   })
@@ -748,7 +751,7 @@ function social({
       accessibleText,
       height: externalHeight,
     },
-    [style, gradients, backgroundGroup, logoElement, foregroundGroup]
+    [style, gradients, backgroundGroup, logoElement, foregroundGroup],
   )
 }
 
@@ -801,11 +804,13 @@ function forTheBadge({
   // there is no label. When `needsLabelRect` is true, render a label rect and a
   // message rect; when false, only a message rect.
   const hasLabel = Boolean(label.length)
+  const noText = !hasLabel && !message
   const needsLabelRect = hasLabel || (logo && labelColor)
+  const gutter = noText ? LOGO_TEXT_GUTTER - LOGO_MARGIN : LOGO_TEXT_GUTTER
   let logoMinX, labelTextMinX
   if (logo) {
     logoMinX = LOGO_MARGIN
-    labelTextMinX = logoMinX + logoWidth + LOGO_TEXT_GUTTER
+    labelTextMinX = logoMinX + logoWidth + gutter
   } else {
     labelTextMinX = TEXT_MARGIN
   }
@@ -820,9 +825,8 @@ function forTheBadge({
     messageRectWidth = 2 * TEXT_MARGIN + messageTextWidth
   } else {
     if (logo) {
-      messageTextMinX = TEXT_MARGIN + logoWidth + LOGO_TEXT_GUTTER
-      messageRectWidth =
-        2 * TEXT_MARGIN + logoWidth + LOGO_TEXT_GUTTER + messageTextWidth
+      messageTextMinX = TEXT_MARGIN + logoWidth + gutter
+      messageRectWidth = 2 * TEXT_MARGIN + logoWidth + gutter + messageTextWidth
     } else {
       messageTextMinX = TEXT_MARGIN
       messageRectWidth = 2 * TEXT_MARGIN + messageTextWidth
@@ -978,7 +982,7 @@ function forTheBadge({
       accessibleText: createAccessibleText({ label, message }),
       height: BADGE_HEIGHT,
     },
-    [backgroundGroup, foregroundGroup]
+    [backgroundGroup, foregroundGroup],
   )
 }
 

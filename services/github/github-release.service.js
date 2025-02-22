@@ -1,16 +1,19 @@
 import Joi from 'joi'
-import { addv } from '../text-formatters.js'
-import { version as versionColor } from '../color-formatters.js'
-import { redirector } from '../index.js'
+import { redirector, pathParam, queryParam } from '../index.js'
+import { renderVersionBadge } from '../version.js'
 import { GithubAuthV3Service } from './github-auth-service.js'
 import {
   fetchLatestRelease,
   queryParamSchema,
+  openApiQueryParams,
 } from './github-common-release.js'
 import { documentation } from './github-helpers.js'
 
+const displayNameEnum = ['tag', 'release']
 const extendedQueryParamSchema = Joi.object({
-  display_name: Joi.string().valid('tag', 'release').default('tag'),
+  display_name: Joi.string()
+    .valid(...displayNameEnum)
+    .default('tag'),
 })
 
 class GithubRelease extends GithubAuthV3Service {
@@ -21,80 +24,26 @@ class GithubRelease extends GithubAuthV3Service {
     queryParamSchema: queryParamSchema.concat(extendedQueryParamSchema),
   }
 
-  static examples = [
-    {
-      title: 'GitHub release (latest by date)',
-      namedParams: { user: 'expressjs', repo: 'express' },
-      queryParams: { display_name: 'tag' },
-      staticPreview: this.render({
-        version: 'v4.16.4',
-        sort: 'date',
-        isPrerelease: false,
-      }),
-      documentation,
-    },
-    {
-      title: 'GitHub release (latest by date including pre-releases)',
-      namedParams: { user: 'expressjs', repo: 'express' },
-      queryParams: { include_prereleases: null, display_name: 'tag' },
-      staticPreview: this.render({
-        version: 'v5.0.0-alpha.7',
-        sort: 'date',
-        isPrerelease: true,
-      }),
-      documentation,
-    },
-    {
-      title: 'GitHub release (latest SemVer)',
-      namedParams: { user: 'expressjs', repo: 'express' },
-      queryParams: { sort: 'semver', display_name: 'tag' },
-      staticPreview: this.render({
-        version: 'v4.16.4',
-        sort: 'semver',
-        isPrerelease: false,
-      }),
-      documentation,
-    },
-    {
-      title: 'GitHub release (latest SemVer including pre-releases)',
-      namedParams: { user: 'expressjs', repo: 'express' },
-      queryParams: {
-        sort: 'semver',
-        include_prereleases: null,
-        display_name: 'tag',
+  static openApi = {
+    '/github/v/release/{user}/{repo}': {
+      get: {
+        summary: 'GitHub Release',
+        description: documentation,
+        parameters: [
+          pathParam({ name: 'user', example: 'expressjs' }),
+          pathParam({ name: 'repo', example: 'express' }),
+          ...openApiQueryParams,
+          queryParam({
+            name: 'display_name',
+            example: 'tag',
+            schema: { type: 'string', enum: displayNameEnum },
+          }),
+        ],
       },
-      staticPreview: this.render({
-        version: 'v5.0.0-alpha.7',
-        sort: 'semver',
-        isPrerelease: true,
-      }),
-      documentation,
     },
-    {
-      title: 'GitHub release (release name instead of tag name)',
-      namedParams: { user: 'gooddata', repo: 'gooddata-java' },
-      queryParams: {
-        sort: 'date',
-        include_prereleases: null,
-        display_name: 'release',
-      },
-      staticPreview: this.render({
-        version: '3.7.0+api3',
-        sort: 'date',
-        isPrerelease: true,
-      }),
-      documentation,
-    },
-  ]
-
-  static defaultBadgeData = { label: 'release', namedLogo: 'github' }
-
-  static render({ version, sort, isPrerelease }) {
-    let color = 'blue'
-    color = sort === 'semver' ? versionColor(version) : color
-    color = isPrerelease ? 'orange' : color
-    return { message: addv(version), color }
   }
+
+  static defaultBadgeData = { label: 'release' }
 
   static transform(latestRelease, display) {
     const { name, tag_name: tagName, prerelease: isPrerelease } = latestRelease
@@ -109,15 +58,14 @@ class GithubRelease extends GithubAuthV3Service {
     const latestRelease = await fetchLatestRelease(
       this,
       { user, repo },
-      queryParams
+      queryParams,
     )
     const { version, isPrerelease } = this.constructor.transform(
       latestRelease,
-      queryParams.display_name
+      queryParams.display_name,
     )
-    return this.constructor.render({
+    return renderVersionBadge({
       version,
-      sort: queryParams.sort,
       isPrerelease,
     })
   }

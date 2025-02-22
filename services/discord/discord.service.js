@@ -1,25 +1,24 @@
 import Joi from 'joi'
 import { nonNegativeInteger } from '../validators.js'
-import { BaseJsonService } from '../index.js'
+import { metric } from '../text-formatters.js'
+import { BaseJsonService, pathParams } from '../index.js'
 
 const schema = Joi.object({
   presence_count: nonNegativeInteger,
 }).required()
 
-const documentation = `
-<p>
-  The Discord badge requires the <code>SERVER ID</code> in order access the Discord JSON API.
-</p>
-<p>
-  The <code>SERVER ID</code> can be located in the url of the channel that the badge is accessing.
-</p>
+const description = `
+The Discord badge requires the <code>SERVER ID</code> in order access the Discord JSON API.
+
+The <code>SERVER ID</code> can be located in the url of the channel that the badge is accessing.
+
 <img
   src="https://user-images.githubusercontent.com/6025893/39329897-b08f8290-4997-11e8-8f8f-7b85ff61882f.png"
   alt="SERVER ID is after the channel part at the end of the url" />
-<p>
-  To use the Discord badge a Discord server admin must enable the widget setting on the server.
-</p>
-<iframe src="https://player.vimeo.com/video/364220040" width="640" height="210" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
+
+To use the Discord badge a Discord server admin must enable the widget setting on the server.
+
+<iframe src="https://player.vimeo.com/video/364220040" width="640" height="210" frameBorder="0" allow="autoplay; fullscreen" allowFullScreen></iframe>
 `
 
 export default class Discord extends BaseJsonService {
@@ -36,22 +35,26 @@ export default class Discord extends BaseJsonService {
     isRequired: false,
   }
 
-  static examples = [
-    {
-      title: 'Discord',
-      namedParams: { serverId: '102860784329052160' },
-      staticPreview: this.render({ members: 23 }),
-      documentation,
+  static openApi = {
+    '/discord/{serverId}': {
+      get: {
+        summary: 'Discord',
+        description,
+        parameters: pathParams({
+          name: 'serverId',
+          example: '308323056592486420',
+        }),
+      },
     },
-  ]
+  }
 
-  static _cacheLength = 30
+  static _cacheLength = 300
 
   static defaultBadgeData = { label: 'chat' }
 
   static render({ members }) {
     return {
-      message: `${members} online`,
+      message: `${metric(members)} online`,
       color: 'brightgreen',
     }
   }
@@ -63,13 +66,13 @@ export default class Discord extends BaseJsonService {
         {
           url,
           schema,
-          errorMessages: {
+          httpErrors: {
             404: 'invalid server',
             403: 'widget disabled',
           },
         },
-        'Bot'
-      )
+        'Bot',
+      ),
     )
   }
 

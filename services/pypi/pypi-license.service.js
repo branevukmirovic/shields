@@ -1,5 +1,5 @@
 import { renderLicenseBadge } from '../licenses.js'
-import PypiBase from './pypi-base.js'
+import PypiBase, { pypiGeneralParams } from './pypi-base.js'
 import { getLicenses } from './pypi-helpers.js'
 
 export default class PypiLicense extends PypiBase {
@@ -7,22 +7,21 @@ export default class PypiLicense extends PypiBase {
 
   static route = this.buildRoute('pypi/l')
 
-  static examples = [
-    {
-      title: 'PyPI - License',
-      pattern: ':packageName',
-      namedParams: { packageName: 'Django' },
-      staticPreview: this.render({ licenses: ['BSD'] }),
-      keywords: ['python'],
+  static openApi = {
+    '/pypi/l/{packageName}': {
+      get: {
+        summary: 'PyPI - License',
+        parameters: pypiGeneralParams,
+      },
     },
-  ]
+  }
 
   static render({ licenses }) {
     return renderLicenseBadge({ licenses })
   }
 
-  async handle({ egg }) {
-    const packageData = await this.fetch({ egg })
+  async handle({ egg }, { pypiBaseUrl }) {
+    const packageData = await this.fetch({ egg, pypiBaseUrl })
     const licenses = getLicenses(packageData)
     return this.constructor.render({ licenses })
   }

@@ -1,16 +1,12 @@
-import dayjs from 'dayjs'
-import customParseFormat from 'dayjs/plugin/customParseFormat.js'
-import { InvalidResponse } from '../index.js'
-import { formatDate } from '../text-formatters.js'
-import { age as ageColor } from '../color-formatters.js'
-import { documentation, BaseWordpress } from './wordpress-base.js'
-dayjs.extend(customParseFormat)
+import { pathParams } from '../index.js'
+import { parseDate, renderDateBadge } from '../date.js'
+import { description, BaseWordpress } from './wordpress-base.js'
 
 const extensionData = {
   plugin: {
     capt: 'Plugin',
     exampleSlug: 'bbpress',
-    lastUpdateFormat: 'YYYY-MM-DD hh:mma [GMT]',
+    lastUpdateFormat: 'YYYY-MM-DD h:mma [GMT]',
   },
   theme: {
     capt: 'Theme',
@@ -32,34 +28,23 @@ function LastUpdateForType(extensionType) {
       pattern: ':slug',
     }
 
-    static examples = [
-      {
-        title: `WordPress ${capt} Last Updated`,
-        namedParams: { slug: exampleSlug },
-        staticPreview: this.render({ lastUpdated: '2020-08-11' }),
-        documentation,
-      },
-    ]
+    static get openApi() {
+      const key = `/wordpress/${extensionType}/last-updated/{slug}`
+      const route = {}
+      route[key] = {
+        get: {
+          summary: `WordPress ${capt} Last Updated`,
+          description,
+          parameters: pathParams({
+            name: 'slug',
+            example: exampleSlug,
+          }),
+        },
+      }
+      return route
+    }
 
     static defaultBadgeData = { label: 'last updated' }
-
-    static render({ lastUpdated }) {
-      return {
-        label: 'last updated',
-        message: formatDate(lastUpdated),
-        color: ageColor(lastUpdated),
-      }
-    }
-
-    transform(lastUpdate) {
-      const date = dayjs(lastUpdate, lastUpdateFormat)
-
-      if (date.isValid()) {
-        return date.format('YYYY-MM-DD')
-      } else {
-        throw new InvalidResponse({ prettyMessage: 'invalid date' })
-      }
-    }
 
     async handle({ slug }) {
       const { last_updated: lastUpdated } = await this.fetch({
@@ -67,11 +52,9 @@ function LastUpdateForType(extensionType) {
         slug,
       })
 
-      const newDate = await this.transform(lastUpdated)
+      const date = parseDate(lastUpdated, lastUpdateFormat)
 
-      return this.constructor.render({
-        lastUpdated: newDate,
-      })
+      return renderDateBadge(date)
     }
   }
 }

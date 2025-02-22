@@ -1,0 +1,29 @@
+{
+  "reporter": ["lcov"],
+  "all": true,
+  "silent": true,
+  "clean": false,
+  "exclude": [
+    "**/*.spec.js",
+    "**/*.integration.js",
+    "**/test-helpers.js",
+    "**/*-test-helpers.js",
+    "**/*-fixtures.js",
+    "**/*.test-d.ts",
+    "dangerfile.js",
+    "core/service-test-runner",
+    "core/got-test-client.js",
+    "services/**/*.tester.js",
+    "services/test-validators.js",
+    "services/tester.js",
+    "core/base-service/loader-test-fixtures",
+    "scripts",
+    "coverage",
+    "build",
+    ".github",
+    "**/public/",
+    "cypress",
+    "frontend",
+    "migrations"
+  ]
+}

@@ -1,7 +1,7 @@
 import Joi from 'joi'
 import { version as versionColor } from '../color-formatters.js'
-import { redirector } from '../index.js'
-import { BaseClojarsService } from './clojars-base.js'
+import { redirector, pathParam, queryParam } from '../index.js'
+import { BaseClojarsService, description } from './clojars-base.js'
 
 const queryParamSchema = Joi.object({
   include_prereleases: Joi.equal(''),
@@ -11,23 +11,33 @@ class ClojarsVersionService extends BaseClojarsService {
   static category = 'version'
   static route = { base: 'clojars/v', pattern: ':clojar+', queryParamSchema }
 
-  static examples = [
-    {
-      title: 'Clojars Version',
-      namedParams: { clojar: 'prismic' },
-      staticPreview: this.render({ clojar: 'clojar', version: '1.2' }),
+  static openApi = {
+    '/clojars/v/{clojar}': {
+      get: {
+        summary: 'Clojars Version',
+        description,
+        parameters: [
+          pathParam({
+            name: 'clojar',
+            example: 'prismic',
+          }),
+          queryParam({
+            name: 'include_prereleases',
+            schema: { type: 'boolean' },
+            example: null,
+          }),
+        ],
+      },
     },
-    {
-      title: 'Clojars Version (including pre-releases)',
-      namedParams: { clojar: 'prismic' },
-      queryParams: { include_prereleases: null },
-      staticPreview: this.render({ clojar: 'clojar', version: '1.2' }),
-    },
-  ]
+  }
 
   static defaultBadgeData = { label: 'clojars' }
 
   static render({ clojar, version }) {
+    // clojars format is non standard to fit community style
+    // dont use renderVersionBadge
+    // see also https://github.com/badges/shields/pull/431
+    // commit d0414c9
     return {
       message: `[${clojar} "${version}"]`,
       color: versionColor(version),

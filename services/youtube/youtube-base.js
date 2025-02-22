@@ -3,9 +3,21 @@ import { BaseJsonService, NotFound } from '../index.js'
 import { metric } from '../text-formatters.js'
 import { nonNegativeInteger } from '../validators.js'
 
-const documentation = `
-<p>By using the YouTube badges provided by Shields.io, you are agreeing to be bound by the YouTube Terms of Service. These can be found here:
-<a target="_blank" href="https://www.youtube.com/t/terms">https://www.youtube.com/t/terms</a></p>`
+const description = `
+Shields.io is committed to protecting the privacy of its users. We do not collect, store, or track any personal
+information or data returned by the YouTube API Services. Our service is designed to generate badges based on
+public YouTube data, and we do not retain any user-specific information:
+* Data Collection: we do not collect, store, or process any personal data from users. The information
+retrieved from the YouTube API is used solely to generate badges in real-time and is not stored or saved by us.
+* Cookies and Tracking: Shields.io does not use cookies or any other tracking technologies to collect or store user data.
+* Data Sharing: no information retrieved via the YouTube API is shared with third parties or used beyond generating the
+requested badges.
+* Contact Information: if you have any questions or concerns about our data practices, please contact us at team at shields.io.
+
+By using the YouTube badge, you are:
+* agreeing to be bound by the YouTube Terms of Service, which can be found here: [https://www.youtube.com/t/terms](https://www.youtube.com/t/terms)
+* acknowledging and accepting the Google Privacy Policy, which can be found here: [https://policies.google.com/privacy](https://policies.google.com/privacy)
+`
 
 const schema = Joi.object({
   pageInfo: Joi.object({
@@ -23,9 +35,9 @@ const schema = Joi.object({
         Joi.object({
           viewCount: nonNegativeInteger,
           subscriberCount: nonNegativeInteger,
-        })
+        }),
       ),
-    })
+    }),
   ),
 }).required()
 
@@ -63,12 +75,12 @@ class YouTubeBase extends BaseJsonService {
           options: {
             searchParams: { id, part: 'statistics' },
           },
-        }
-      )
+        },
+      ),
     )
   }
 
-  async handle({ channelId, videoId }, queryParams) {
+  async handle({ channelId, videoId }) {
     const id = channelId || videoId
     const json = await this.fetch({ id })
     if (json.pageInfo.totalResults === 0) {
@@ -77,7 +89,7 @@ class YouTubeBase extends BaseJsonService {
       })
     }
     const statistics = json.items[0].statistics
-    return this.constructor.render({ statistics, id }, queryParams)
+    return this.constructor.render({ statistics, id })
   }
 }
 
@@ -89,4 +101,4 @@ class YouTubeChannelBase extends YouTubeBase {
   static type = 'channel'
 }
 
-export { documentation, YouTubeVideoBase, YouTubeChannelBase }
+export { description, YouTubeVideoBase, YouTubeChannelBase }

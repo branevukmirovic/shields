@@ -33,21 +33,25 @@ export default class BaseStaticService extends BaseService {
         {},
         serviceConfig,
         namedParams,
-        queryParams
+        queryParams,
       )
 
       const badgeData = coalesceBadge(
         queryParams,
         serviceData,
         this.defaultBadgeData,
-        this
+        this,
       )
 
       // The final capture group is the extension.
       const format = (match.slice(-1)[0] || '.svg').replace(/^\./, '')
       badgeData.format = format
 
-      setCacheHeadersForStaticResource(ask.res)
+      let maxAge = 24 * 3600 // 1 day
+      if (!queryParams.logo && !badgeData.isError) {
+        maxAge = 5 * 24 * 3600 // 5 days
+      }
+      setCacheHeadersForStaticResource(ask.res, maxAge)
 
       const svg = makeBadge(badgeData)
       makeSend(format, ask.res, end)(svg)
