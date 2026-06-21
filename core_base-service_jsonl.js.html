@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Module: core/service-test-runner/service-tester</title>
+    <title>JSDoc: Source: core/base-service/jsonl.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,101 +17,55 @@
 
 <div id="main">
 
-    <h1 class="page-title">Module: core/service-test-runner/service-tester</h1>
+    <h1 class="page-title">Source: core/base-service/jsonl.js</h1>
 
     
 
 
 
-
-<section>
-
-<header>
     
-</header>
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>// See available emoji at http://emoji.muan.co/
+import emojic from 'emojic'
+import { InvalidResponse } from './errors.js'
+import trace from './trace.js'
 
-<article>
-    <div class="container-overview">
-    
-        
+/**
+ * Parse a JSONL (newline-delimited JSON) response buffer. Splits the buffer
+ * by newlines, trims each line, filters empty lines, and parses each line
+ * as JSON. Throws an `InvalidResponse` error when any line is unparseable.
+ *
+ * @param {string|Buffer} buffer - The raw response body.
+ * @returns {Array&lt;object>} Array of parsed JSON values, one per line.
+ */
+function parseJsonl(buffer) {
+  const logTrace = (...args) => trace.logTrace('fetch', ...args)
+  let jsonl
+  try {
+    jsonl = buffer
+      .toString()
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(Boolean)
+      .map(line => JSON.parse(line))
+  } catch (err) {
+    logTrace(emojic.dart, 'Response JSONL (unparseable)', buffer)
+    throw new InvalidResponse({
+      prettyMessage: 'unparseable jsonl response',
+      underlyingError: err,
+    })
+  }
+  logTrace(emojic.dart, 'Response JSONL (before validation)', jsonl, {
+    deep: true,
+  })
+  return jsonl
+}
 
-        
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="core_service-test-runner_service-tester.js.html">core/service-test-runner/service-tester.js</a>, <a href="core_service-test-runner_service-tester.js.html#line1">line 1</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Classes</h3>
-
-        <dl>
-            <dt><a href="module-core_service-test-runner_service-tester-ServiceTester.html">ServiceTester</a></dt>
-            <dd></dd>
-        </dl>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</article>
-
-</section>
+export { parseJsonl }
+</code></pre>
+        </article>
+    </section>
 
 
 
