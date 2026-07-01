@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: services/thunderstore/thunderstore-base.js</title>
+    <title>JSDoc: Source: services/test-results.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: services/thunderstore/thunderstore-base.js</h1>
+    <h1 class="page-title">Source: services/test-results.js</h1>
 
     
 
@@ -26,66 +26,160 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import Joi from 'joi'
-import { BaseJsonService } from '../index.js'
-import { nonNegativeInteger } from '../validators.js'
+            <pre class="prettyprint source linenums"><code>/**
+ * Helpers for formatting test-result badge messages and colors.
+ *
+ * @module
+ */
 
-const packageMetricsSchema = Joi.object({
-  downloads: nonNegativeInteger,
-  rating_score: nonNegativeInteger,
-  latest_version: Joi.string().required(),
-})
+import Joi from 'joi'
+import { queryParams } from './index.js'
 
-const description = `
-The Thunderstore badges require a package's &lt;code>namespace&lt;/code> and &lt;code>name&lt;/code>.
+const testResultQueryParamSchema = Joi.object({
+  compact_message: Joi.equal(''),
+  passed_label: Joi.string(),
+  failed_label: Joi.string(),
+  skipped_label: Joi.string(),
+}).required()
 
-Everything can be discerned from your package's URL. Thunderstore package URLs have a mostly consistent format:
-
-&lt;code>https://thunderstore.io/c/[community]/p/[namespace]/[packageName]&lt;/code>
-
-For example: &lt;code>https://thunderstore.io/c/lethal-company/p/notnotnotswipez/MoreCompany/&lt;/code>.
-&lt;ul>
-  &lt;li>&lt;code>namespace = "notnotnotswipez"&lt;/code>&lt;/li>
-  &lt;li>&lt;code>packageName = "MoreCompany"&lt;/code>&lt;/li>
-&lt;/ul>
-
-:::info[Risk Of Rain 2]
-The 'default community', Risk of Rain 2, has an alternative URL:
-
-&lt;code>https://thunderstore.io/package/[namespace]/[packageName]&lt;/code>
-:::
-
-:::info[Subdomain Communities]
-Some communities use a 'subdomain' alternative URL, for example, Valheim:
-
-&lt;code>https://valheim.thunderstore.io/package/[namespace]/[packageName]&lt;/code>
-:::
-`
+const testResultOpenApiQueryParams = queryParams(
+  {
+    name: 'compact_message',
+    example: null,
+    schema: { type: 'boolean' },
+  },
+  { name: 'passed_label', example: 'good' },
+  { name: 'failed_label', example: 'bad' },
+  { name: 'skipped_label', example: 'n/a' },
+)
 
 /**
- * Services which query Thunderstore endpoints should extend BaseThunderstoreService
+ * Format test counts into a badge message string.
  *
- * @abstract
+ * @param {object} attrs Refer to individual attrs
+ * @param {number} attrs.passed Number of passing tests.
+ * @param {number} attrs.failed Number of failing tests.
+ * @param {number} attrs.skipped Number of skipped tests.
+ * @param {number} attrs.total Total number of tests.
+ * @param {string} [attrs.passedLabel] Label for passing tests in verbose mode.
+ * @param {string} [attrs.failedLabel] Label for failing tests in verbose mode.
+ * @param {string} [attrs.skippedLabel] Label for skipped tests in verbose mode.
+ * @param {boolean} [attrs.isCompact] When true, use compact symbols separated by ` | `.
+ * @returns {string} Formatted message, or `no tests` when total is zero.
  */
-class BaseThunderstoreService extends BaseJsonService {
-  static thunderstoreGreen = '23FFB0'
-  /**
-   * Fetches package metrics from the Thunderstore API.
-   *
-   * @param {object} pkg - Package specifier
-   * @param {string} pkg.namespace - the package namespace
-   * @param {string} pkg.packageName - the package name
-   * @returns {Promise&lt;object>} - Promise containing validated package metrics
-   */
-  async fetchPackageMetrics({ namespace, packageName }) {
-    return this._requestJson({
-      schema: packageMetricsSchema,
-      url: `https://thunderstore.io/api/v1/package-metrics/${namespace}/${packageName}`,
-    })
+function renderTestResultMessage({
+  passed,
+  failed,
+  skipped,
+  total,
+  passedLabel,
+  failedLabel,
+  skippedLabel,
+  isCompact,
+}) {
+  const labels = { passedLabel, failedLabel, skippedLabel }
+  if (total === 0) {
+    return 'no tests'
+  } else if (isCompact) {
+    ;({ passedLabel = '✔', failedLabel = '✘', skippedLabel = '➟' } = labels)
+    return [
+      `${passedLabel} ${passed}`,
+      failed > 0 &amp;&amp; `${failedLabel} ${failed}`,
+      skipped > 0 &amp;&amp; `${skippedLabel} ${skipped}`,
+    ]
+      .filter(Boolean)
+      .join(' | ')
+  } else {
+    ;({
+      passedLabel = 'passed',
+      failedLabel = 'failed',
+      skippedLabel = 'skipped',
+    } = labels)
+    return [
+      `${passed} ${passedLabel}`,
+      failed > 0 &amp;&amp; `${failed} ${failedLabel}`,
+      skipped > 0 &amp;&amp; `${skipped} ${skippedLabel}`,
+    ]
+      .filter(Boolean)
+      .join(', ')
   }
 }
 
-export { BaseThunderstoreService, description }
+/**
+ * Render badge data for a test result summary.
+ *
+ * Chooses badge color from pass/fail/skip counts and delegates message formatting
+ * to {@link renderTestResultMessage}.
+ *
+ * @param {object} attrs Refer to individual attrs
+ * @param {number} attrs.passed Number of passing tests.
+ * @param {number} attrs.failed Number of failing tests.
+ * @param {number} attrs.skipped Number of skipped tests.
+ * @param {number} attrs.total Total number of tests.
+ * @param {string} [attrs.passedLabel] Label for passing tests in verbose mode.
+ * @param {string} [attrs.failedLabel] Label for failing tests in verbose mode.
+ * @param {string} [attrs.skippedLabel] Label for skipped tests in verbose mode.
+ * @param {boolean} [attrs.isCompact] When true, use compact symbols in the message.
+ * @returns {{message: string, color: string}} Badge message and shields color name.
+ */
+function renderTestResultBadge({
+  passed,
+  failed,
+  skipped,
+  total,
+  passedLabel,
+  failedLabel,
+  skippedLabel,
+  isCompact,
+}) {
+  const message = renderTestResultMessage({
+    passed,
+    failed,
+    skipped,
+    total,
+    passedLabel,
+    failedLabel,
+    skippedLabel,
+    isCompact,
+  })
+
+  let color
+  if (total === 0) {
+    color = 'yellow'
+  } else if (failed > 0) {
+    color = 'red'
+  } else if (skipped > 0 &amp;&amp; passed > 0) {
+    color = 'green'
+  } else if (skipped > 0) {
+    color = 'yellow'
+  } else {
+    color = 'brightgreen'
+  }
+
+  return { message, color }
+}
+
+const documentation = `
+You may change the "passed", "failed" and "skipped" text on this badge by supplying query parameters &lt;code>&amp;passed_label=&lt;/code>, &lt;code>&amp;failed_label=&lt;/code> and &lt;code>&amp;skipped_label=&lt;/code> respectively.
+
+For example, if you want to use a different terminology:
+
+\`?passed_label=good&amp;failed_label=bad&amp;skipped_label=n%2Fa\`
+
+Or symbols:
+
+\`?compact_message&amp;passed_label=💃&amp;failed_label=🤦‍♀️&amp;skipped_label=🤷\`
+
+There is also a &lt;code>&amp;compact_message&lt;/code> query parameter, which will default to displaying ✔, ✘ and ➟, separated by a horizontal bar |.
+`
+
+export {
+  testResultQueryParamSchema,
+  testResultOpenApiQueryParams,
+  renderTestResultMessage,
+  renderTestResultBadge,
+  documentation,
+}
 </code></pre>
         </article>
     </section>

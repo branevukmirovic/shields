@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Module: core/base-service/base</title>
+    <title>JSDoc: Module: services/test-results</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Module: core/base-service/base</h1>
+    <h1 class="page-title">Module: services/test-results</h1>
 
     
 
@@ -33,6 +33,8 @@
 <article>
     <div class="container-overview">
     
+        
+            <div class="description"><p>Helpers for formatting test-result badge messages and colors.</p></div>
         
 
         
@@ -67,7 +69,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="core_base-service_base.js.html">core/base-service/base.js</a>, <a href="core_base-service_base.js.html#line1">line 1</a>
+        <a href="services_test-results.js.html">services/test-results.js</a>, <a href="services_test-results.js.html#line1">line 1</a>
     </li></ul></dd>
     
 
@@ -88,12 +90,7 @@
     
 
     
-        <h3 class="subsection-title">Classes</h3>
 
-        <dl>
-            <dt><a href="module-core_base-service_base-BaseService.html">BaseService</a></dt>
-            <dd></dd>
-        </dl>
     
 
     
@@ -103,274 +100,39 @@
     
 
     
-        <h3 class="subsection-title">Members</h3>
+        <h3 class="subsection-title">Methods</h3>
 
         
             
-<h4 class="name" id="~defaultBadgeDataSchema"><span class="type-signature">(inner, constant) </span>defaultBadgeDataSchema<span class="type-signature"></span></h4>
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
 
     
 
     
-
+    <h4 class="name" id="~renderTestResultBadge"><span class="type-signature">(inner) </span>renderTestResultBadge<span class="signature">(attrs)</span><span class="type-signature"> &rarr; {Object}</span></h4>
     
 
     
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="core_base-service_base.js.html">core/base-service/base.js</a>, <a href="core_base-service_base.js.html#line36">line 36</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-    
-
-    
-
-    
-        <h3 class="subsection-title">Type Definitions</h3>
-
-        
-                
-<h4 class="name" id="~Auth">Auth</h4>
-
-
-
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">object</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-    <h5 class="subsection-title">Properties:</h5>
-
-    
-
-<table class="props">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>userKey</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>(Optional) The key from <code>privateConfig</code> to use as the username.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>passKey</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>(Optional) The key from <code>privateConfig</code> to use as the password.
-If auth is configured, either <code>userKey</code> or <code>passKey</code> is required.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>isRequired</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>(Optional) If <code>true</code>, the service will return <code>NotFound</code> unless the
-configured credentials are present.</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="core_base-service_base.js.html">core/base-service/base.js</a>, <a href="core_base-service_base.js.html#line576">line 576</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-            
-                
-<h4 class="name" id="~Badge">Badge</h4>
-
 
 
 
 <div class="description">
-    <p>Badge Object, validated against serviceDataSchema</p>
+    <p>Render badge data for a test result summary.</p>
+<p>Chooses badge color from pass/fail/skip counts and delegates message formatting
+to renderTestResultMessage.</p>
 </div>
 
 
 
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">object</span>
-
-
-        </li>
-    </ul>
 
 
 
 
 
-    <h5 class="subsection-title">Properties:</h5>
 
+    <h5>Parameters:</h5>
     
 
-<table class="props">
+<table class="params">
     <thead>
     <tr>
         
@@ -392,7 +154,274 @@ configured credentials are present.</p></td>
 
         <tr>
             
-                <td class="name"><code>isError</code></td>
+                <td class="name"><code>attrs</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Refer to individual attrs</p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>passed</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Number of passing tests.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>failed</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Number of failing tests.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>skipped</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Number of skipped tests.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>total</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Total number of tests.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>passedLabel</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Label for passing tests in verbose mode.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>failedLabel</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Label for failing tests in verbose mode.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>skippedLabel</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Label for skipped tests in verbose mode.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>isCompact</code></td>
             
 
             <td class="type">
@@ -405,23 +434,176 @@ configured credentials are present.</p></td>
             </td>
 
             
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
 
             
 
-            <td class="description last"><p>(Optional)</p></td>
+            <td class="description last"><p>When true, use compact symbols in the message.</p></td>
         </tr>
 
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="services_test-results.js.html">services/test-results.js</a>, <a href="services_test-results.js.html#line97">line 97</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Badge message and shields color name.</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Object</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="~renderTestResultMessage"><span class="type-signature">(inner) </span>renderTestResultMessage<span class="signature">(attrs)</span><span class="type-signature"> &rarr; {string}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Format test counts into a badge message string.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
     
 
         <tr>
             
-                <td class="name"><code>label</code></td>
+                <td class="name"><code>attrs</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">object</span>
 
 
             
@@ -431,22 +613,40 @@ configured credentials are present.</p></td>
 
             
 
-            <td class="description last"><p>(Optional)</p></td>
-        </tr>
+            <td class="description last"><p>Refer to individual attrs</p>
+                <h6>Properties</h6>
+                
 
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
     
 
         <tr>
             
-                <td class="name"><code>message</code></td>
+                <td class="name"><code>passed</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
-|
-
 <span class="param-type">number</span>
 
 
@@ -454,17 +654,118 @@ configured credentials are present.</p></td>
             </td>
 
             
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
 
             
 
-            <td class="description last"></td>
+            <td class="description last"><p>Number of passing tests.</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>color</code></td>
+                <td class="name"><code>failed</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Number of failing tests.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>skipped</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Number of skipped tests.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>total</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Total number of tests.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>passedLabel</code></td>
             
 
             <td class="type">
@@ -477,38 +778,133 @@ configured credentials are present.</p></td>
             </td>
 
             
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
 
             
 
-            <td class="description last"><p>(Optional)</p></td>
+            <td class="description last"><p>Label for passing tests in verbose mode.</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>link</code></td>
+                <td class="name"><code>failedLabel</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Array.&lt;string></span>
+<span class="param-type">string</span>
 
 
             
             </td>
 
             
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
 
             
 
-            <td class="description last"><p>(Optional)</p></td>
+            <td class="description last"><p>Label for failing tests in verbose mode.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>skippedLabel</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Label for skipped tests in verbose mode.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>isCompact</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>When true, use compact symbols separated by <code>|</code>.</p></td>
         </tr>
 
     
     </tbody>
 </table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
 
 
 
@@ -542,7 +938,7 @@ configured credentials are present.</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="core_base-service_base.js.html">core/base-service/base.js</a>, <a href="core_base-service_base.js.html#line528">line 528</a>
+        <a href="services_test-results.js.html">services/test-results.js</a>, <a href="services_test-results.js.html#line42">line 42</a>
     </li></ul></dd>
     
 
@@ -558,435 +954,45 @@ configured credentials are present.</p></td>
 
 
 
-            
-                
-<h4 class="name" id="~DefaultBadgeData">DefaultBadgeData</h4>
 
 
 
 
-<div class="description">
-    <p>Default badge properties, validated against defaultBadgeDataSchema</p>
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>Formatted message, or <code>no tests</code> when total is zero.</p>
 </div>
 
 
 
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">object</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-    <h5 class="subsection-title">Properties:</h5>
-
-    
-
-<table class="props">
-    <thead>
-    <tr>
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
         
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>label</code></td>
-            
-
-            <td class="type">
-            
-                
 <span class="param-type">string</span>
 
 
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>(Optional)</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>color</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>(Optional)</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>labelColor</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>(Optional)</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>namedLogo</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>(Optional)</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="core_base-service_base.js.html">core/base-service/base.js</a>, <a href="core_base-service_base.js.html#line518">line 518</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
+    </dd>
 </dl>
 
-
-
-
-
-
-            
-                
-<h4 class="name" id="~Route">Route</h4>
-
-
-
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">object</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-    <h5 class="subsection-title">Properties:</h5>
-
     
 
-<table class="props">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
 
-        <th>Type</th>
+
+
 
         
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
     
 
-        <tr>
-            
-                <td class="name"><code>base</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>(Optional) The base path of the routes for this service.
-This is used as a prefix.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>pattern</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>A path-to-regexp pattern defining the route pattern and param names
-See <a href="https://www.npmjs.com/package/path-to-regexp">https://www.npmjs.com/package/path-to-regexp</a></p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>format</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">RegExp</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Deprecated: Regular expression to use for routes for this service's badges
-Use <code>pattern</code> instead</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>capture</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array.&lt;string></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Deprecated: Array of names for the capture groups in the regular
-expression. The handler will be passed an object containing
-the matches.
-Use <code>pattern</code> instead</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>queryParamSchema</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Joi.object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>(Optional) A Joi schema (<code>Joi.object({ ... }).required()</code>)
-for the query param object. If you know a parameter
-will never receive a numeric string, you can use
-<code>Joi.string()</code>. Because of quirks in Scoutcamp and Joi,
-alphanumeric strings should be declared using
-<code>Joi.alternatives().try(Joi.string(), Joi.number())</code>,
-otherwise a value like <code>?success_color=999</code> will fail.
-A parameter requiring a numeric string can use
-<code>Joi.number()</code>. A parameter that receives only non-numeric
-strings can use <code>Joi.string()</code>. A parameter that never
-receives numeric can use <code>Joi.string()</code>. A boolean
-parameter should use <code>Joi.equal('')</code> and will receive an
-empty string on e.g. <code>?compact_message</code> and undefined
-when the parameter is absent. In the OpenApi definitions,
-this type of param should be documented as
-queryParam({
-name: 'compact_message', schema: { type: 'boolean' }, example: null
-})</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="core_base-service_base.js.html">core/base-service/base.js</a>, <a href="core_base-service_base.js.html#line539">line 539</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-            
     
 
     
