@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Module: services/steam/steam-base</title>
+    <title>JSDoc: Source: core/base-service/categories.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,101 +17,52 @@
 
 <div id="main">
 
-    <h1 class="page-title">Module: services/steam/steam-base</h1>
+    <h1 class="page-title">Source: core/base-service/categories.js</h1>
 
     
 
 
 
-
-<section>
-
-<header>
     
-</header>
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Helpers for validating service category identifiers.
+ *
+ * @module
+ */
 
-<article>
-    <div class="container-overview">
-    
-        
+import Joi from 'joi'
+import categories from '../../services/categories.js'
 
-        
+const isRealCategory = Joi.equal(...categories.map(({ id }) => id)).required()
 
+/**
+ * Joi validator for service categories registered by Shields, including the
+ * special `debug`, `dynamic`, and `static` categories.
+ *
+ * @type {Joi}
+ */
+const isValidCategory = Joi.alternatives()
+  .try(isRealCategory, Joi.equal('debug', 'dynamic', 'static').required())
+  .required()
 
-<dl class="details">
+/**
+ * Assert that a value is a valid Shields service category.
+ *
+ * @param {string} category - Service category identifier to validate.
+ * @param {string} [message] - Optional prefix for the validation error.
+ * @throws {Error} When the category is not recognized.
+ * @returns {void}
+ */
+function assertValidCategory(category, message = undefined) {
+  Joi.assert(category, isValidCategory, message)
+}
 
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="services_steam_steam-base.js.html">services/steam/steam-base.js</a>, <a href="services_steam_steam-base.js.html#line1">line 1</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Classes</h3>
-
-        <dl>
-            <dt><a href="module-services_steam_steam-base-BaseSteamAPI.html">BaseSteamAPI</a></dt>
-            <dd></dd>
-        </dl>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</article>
-
-</section>
+export { isValidCategory, assertValidCategory }
+</code></pre>
+        </article>
+    </section>
 
 
 

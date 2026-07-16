@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Module: services/steam/steam-base</title>
+    <title>JSDoc: Module: core/base-service/categories</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Module: services/steam/steam-base</h1>
+    <h1 class="page-title">Module: core/base-service/categories</h1>
 
     
 
@@ -33,6 +33,8 @@
 <article>
     <div class="container-overview">
     
+        
+            <div class="description"><p>Helpers for validating service category identifiers.</p></div>
         
 
         
@@ -67,7 +69,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="services_steam_steam-base.js.html">services/steam/steam-base.js</a>, <a href="services_steam_steam-base.js.html#line1">line 1</a>
+        <a href="core_base-service_categories.js.html">core/base-service/categories.js</a>, <a href="core_base-service_categories.js.html#line1">line 1</a>
     </li></ul></dd>
     
 
@@ -88,22 +90,323 @@
     
 
     
-        <h3 class="subsection-title">Classes</h3>
 
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="~isValidCategory"><span class="type-signature">(inner, constant) </span>isValidCategory<span class="type-signature"> :Joi</span></h4>
+
+
+
+
+<div class="description">
+    <p>Joi validator for service categories registered by Shields, including the
+special <code>debug</code>, <code>dynamic</code>, and <code>static</code> categories.</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Joi</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="core_base-service_categories.js.html">core/base-service/categories.js</a>, <a href="core_base-service_categories.js.html#line18">line 18</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="~assertValidCategory"><span class="type-signature">(inner) </span>assertValidCategory<span class="signature">(category, message<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Assert that a value is a valid Shields service category.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>category</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Service category identifier to validate.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>message</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Optional prefix for the validation error.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="core_base-service_categories.js.html">core/base-service/categories.js</a>, <a href="core_base-service_categories.js.html#line30">line 30</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Throws:</h5>
+
+        
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>When the category is not recognized.</p>
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
         <dl>
-            <dt><a href="module-services_steam_steam-base-BaseSteamAPI.html">BaseSteamAPI</a></dt>
-            <dd></dd>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Error</span>
+
+
+            </dd>
         </dl>
-    
+    </dt>
+    <dd></dd>
+</dl>
+
 
     
 
-    
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">void</span>
+
+
+    </dd>
+</dl>
 
     
 
-    
 
+
+
+
+        
     
 
     
